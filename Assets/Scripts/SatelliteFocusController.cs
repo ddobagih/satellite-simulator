@@ -12,12 +12,25 @@ public class SatelliteFocusController : MonoBehaviour
 
     public void Initialize(SatelliteManager manager, CameraManager cameras, Material haloMaterial)
     {
+        if (satelliteManager != null)
+        {
+            satelliteManager.OnSelectionChanged -= HandleSelectionChanged;
+        }
+
         satelliteManager = manager;
         cameraManager = cameras;
         focusMaterial = haloMaterial;
         if (satelliteManager != null)
         {
             satelliteManager.OnSelectionChanged += HandleSelectionChanged;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (satelliteManager != null)
+        {
+            satelliteManager.OnSelectionChanged -= HandleSelectionChanged;
         }
     }
 

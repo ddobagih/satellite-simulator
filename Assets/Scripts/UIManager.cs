@@ -31,6 +31,7 @@ public class UIManager : MonoBehaviour
     private readonly List<Text> timelineLabels = new List<Text>();
 
     private readonly Dictionary<string, Button> satelliteButtons = new Dictionary<string, Button>();
+    private bool eventsAttached;
 
     public void BuildUI(
         SimulationManager simulation,
@@ -38,6 +39,7 @@ public class UIManager : MonoBehaviour
         MissionManager mission,
         CameraManager cameras)
     {
+        DetachEvents();
         simulationManager = simulation;
         satelliteManager = satellites;
         missionManager = mission;
@@ -53,12 +55,71 @@ public class UIManager : MonoBehaviour
         CreateTimelinePanel(canvas.transform);
         CreateResultPanel(canvas.transform);
 
-        satelliteManager.OnDataChanged += RefreshAll;
-        satelliteManager.OnSelectionChanged += delegate { RefreshAll(); };
-        missionManager.OnMissionChanged += RefreshMissionPanel;
-        simulationManager.OnTimeScaleChanged += RefreshAll;
+        AttachEvents();
 
         RefreshSatelliteList();
+        RefreshAll();
+    }
+
+    private void OnDestroy()
+    {
+        DetachEvents();
+    }
+
+    private void AttachEvents()
+    {
+        if (eventsAttached)
+        {
+            return;
+        }
+
+        if (satelliteManager != null)
+        {
+            satelliteManager.OnDataChanged += RefreshAll;
+            satelliteManager.OnSelectionChanged += HandleSatelliteSelectionChanged;
+        }
+
+        if (missionManager != null)
+        {
+            missionManager.OnMissionChanged += RefreshMissionPanel;
+        }
+
+        if (simulationManager != null)
+        {
+            simulationManager.OnTimeScaleChanged += RefreshAll;
+        }
+
+        eventsAttached = true;
+    }
+
+    private void DetachEvents()
+    {
+        if (!eventsAttached)
+        {
+            return;
+        }
+
+        if (satelliteManager != null)
+        {
+            satelliteManager.OnDataChanged -= RefreshAll;
+            satelliteManager.OnSelectionChanged -= HandleSatelliteSelectionChanged;
+        }
+
+        if (missionManager != null)
+        {
+            missionManager.OnMissionChanged -= RefreshMissionPanel;
+        }
+
+        if (simulationManager != null)
+        {
+            simulationManager.OnTimeScaleChanged -= RefreshAll;
+        }
+
+        eventsAttached = false;
+    }
+
+    private void HandleSatelliteSelectionChanged(SatelliteData selected)
+    {
         RefreshAll();
     }
 

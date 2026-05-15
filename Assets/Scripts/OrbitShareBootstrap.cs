@@ -4,6 +4,12 @@ public class OrbitShareBootstrap : MonoBehaviour
 {
     private static bool bootstrapped;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetBootstrapState()
+    {
+        bootstrapped = false;
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void BootstrapOnPlay()
     {
