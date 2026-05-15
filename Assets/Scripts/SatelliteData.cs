@@ -58,11 +58,11 @@ public class SatelliteData
             switch (ownerType)
             {
                 case SatelliteOwnerType.Personal:
-                    return "Personal";
+                    return "Relay Node";
                 case SatelliteOwnerType.Company:
-                    return "Company";
+                    return "Backbone Node";
                 case SatelliteOwnerType.Shared:
-                    return "Shared";
+                    return "Active Relay";
                 default:
                     return ownerType.ToString();
             }
@@ -76,13 +76,13 @@ public class SatelliteData
             switch (availabilityState)
             {
                 case SatelliteAvailabilityState.Available:
-                    return ownerType == SatelliteOwnerType.Shared ? "Rentable" : "Available";
+                    return ownerType == SatelliteOwnerType.Shared ? "Relay Ready" : "Available";
                 case SatelliteAvailabilityState.Reserved:
-                    return "Reserved";
+                    return "Queued";
                 case SatelliteAvailabilityState.InMission:
-                    return "In Mission";
+                    return "Relaying";
                 case SatelliteAvailabilityState.MissionComplete:
-                    return "Complete";
+                    return "Delivered";
                 default:
                     return availabilityState.ToString();
             }

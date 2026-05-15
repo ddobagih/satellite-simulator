@@ -138,16 +138,16 @@ public class UIManager : MonoBehaviour
 
     private void CreateTopPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "TopBar", new Vector2(0f, 0.91f), new Vector2(1f, 1f), new Color(0.02f, 0.05f, 0.09f, 0.88f));
-        titleText = CreateText(panel, "OrbitShare Digital Twin | Shared Satellite Mission Platform", 30, TextAnchor.MiddleLeft);
+        RectTransform panel = CreatePanel(parent, "TopBar", new Vector2(0f, 0.91f), new Vector2(1f, 1f), new Color(0.02f, 0.05f, 0.09f, 0.72f));
+        titleText = CreateText(panel, "OrbitShare Relay Twin", 30, TextAnchor.MiddleLeft);
         titleText.rectTransform.offsetMin = new Vector2(24f, 0f);
         titleText.rectTransform.offsetMax = new Vector2(-24f, 0f);
     }
 
     private void CreateSatelliteListPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "SatelliteListPanel", new Vector2(0.015f, 0.16f), new Vector2(0.31f, 0.89f), new Color(0.04f, 0.07f, 0.11f, 0.9f));
-        Text heading = CreateText(panel, "Satellite Fleet", 23, TextAnchor.UpperLeft);
+        RectTransform panel = CreatePanel(parent, "SatelliteListPanel", new Vector2(0.015f, 0.47f), new Vector2(0.31f, 0.89f), new Color(0.04f, 0.07f, 0.11f, 0.66f));
+        Text heading = CreateText(panel, "Relay Control", 23, TextAnchor.UpperLeft);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -171,8 +171,8 @@ public class UIManager : MonoBehaviour
 
     private void CreateDetailPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "SatelliteDetailPanel", new Vector2(0.69f, 0.47f), new Vector2(0.985f, 0.89f), new Color(0.04f, 0.07f, 0.11f, 0.9f));
-        Text heading = CreateText(panel, "Satellite Details", 23, TextAnchor.UpperLeft);
+        RectTransform panel = CreatePanel(parent, "SatelliteDetailPanel", new Vector2(0.69f, 0.47f), new Vector2(0.985f, 0.89f), new Color(0.04f, 0.07f, 0.11f, 0.66f));
+        Text heading = CreateText(panel, "Relay Details", 23, TextAnchor.UpperLeft);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -187,8 +187,8 @@ public class UIManager : MonoBehaviour
 
     private void CreateReservationPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "MissionReservationPanel", new Vector2(0.69f, 0.16f), new Vector2(0.985f, 0.45f), new Color(0.04f, 0.07f, 0.11f, 0.9f));
-        Text heading = CreateText(panel, "Mission Reservation", 23, TextAnchor.UpperLeft);
+        RectTransform panel = CreatePanel(parent, "MissionReservationPanel", new Vector2(0.69f, 0.16f), new Vector2(0.985f, 0.45f), new Color(0.04f, 0.07f, 0.11f, 0.66f));
+        Text heading = CreateText(panel, "Relay Request", 23, TextAnchor.UpperLeft);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -208,10 +208,10 @@ public class UIManager : MonoBehaviour
             }
         });
 
-        reserveButton = CreateButton(panel, "Reserve", new Vector2(0f, 0f), new Vector2(0.32f, 0f), new Vector2(18f, 18f), new Vector2(-6f, 64f), delegate { missionManager.ReserveMission(); });
-        startMissionButton = CreateButton(panel, "Start", new Vector2(0.34f, 0f), new Vector2(0.66f, 0f), new Vector2(0f, 18f), new Vector2(0f, 64f), delegate { missionManager.StartMission(); });
+        reserveButton = CreateButton(panel, "Queue", new Vector2(0f, 0f), new Vector2(0.32f, 0f), new Vector2(18f, 18f), new Vector2(-6f, 64f), delegate { missionManager.ReserveMission(); });
+        startMissionButton = CreateButton(panel, "Relay", new Vector2(0.34f, 0f), new Vector2(0.66f, 0f), new Vector2(0f, 18f), new Vector2(0f, 64f), delegate { missionManager.StartMission(); });
         resetButton = CreateButton(panel, "Reset", new Vector2(0.68f, 0f), new Vector2(1f, 0f), new Vector2(6f, 18f), new Vector2(-18f, 64f), delegate { missionManager.ResetMission(); });
-        fastDemoButton = CreateButton(panel, "Fast Demo", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 78f), new Vector2(-18f, 118f), delegate { missionManager.RunFastDemo(); });
+        fastDemoButton = CreateButton(panel, "Quick Relay", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 78f), new Vector2(-18f, 118f), delegate { missionManager.RunFastDemo(); });
 
         reservationHintText = CreateText(panel, string.Empty, 15, TextAnchor.UpperLeft);
         reservationHintText.rectTransform.anchorMin = new Vector2(0f, 0f);
@@ -224,7 +224,7 @@ public class UIManager : MonoBehaviour
 
     private void CreateTimeControlPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "TimeControlPanel", new Vector2(0.325f, 0.02f), new Vector2(0.515f, 0.14f), new Color(0.04f, 0.07f, 0.11f, 0.86f));
+        RectTransform panel = CreatePanel(parent, "TimeControlPanel", new Vector2(0.325f, 0.02f), new Vector2(0.515f, 0.14f), new Color(0.04f, 0.07f, 0.11f, 0.62f));
         Text heading = CreateText(panel, "Time", 18, TextAnchor.UpperCenter);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
@@ -240,7 +240,7 @@ public class UIManager : MonoBehaviour
 
     private void CreateCameraControlPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "CameraControlPanel", new Vector2(0.525f, 0.02f), new Vector2(0.675f, 0.14f), new Color(0.04f, 0.07f, 0.11f, 0.86f));
+        RectTransform panel = CreatePanel(parent, "CameraControlPanel", new Vector2(0.525f, 0.02f), new Vector2(0.675f, 0.14f), new Color(0.04f, 0.07f, 0.11f, 0.62f));
         Text heading = CreateText(panel, "Camera", 18, TextAnchor.UpperCenter);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
@@ -248,36 +248,36 @@ public class UIManager : MonoBehaviour
         heading.rectTransform.anchoredPosition = new Vector2(0f, -8f);
         heading.rectTransform.sizeDelta = new Vector2(-18f, 28f);
 
-        CreateButton(panel, "Overview", new Vector2(0f, 0f), new Vector2(0.28f, 0f), new Vector2(10f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetOverview(); });
+        CreateButton(panel, "View", new Vector2(0f, 0f), new Vector2(0.28f, 0f), new Vector2(10f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetOverview(); });
         CreateButton(panel, "Earth", new Vector2(0.28f, 0f), new Vector2(0.48f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetEarth(); });
-        CreateButton(panel, "Satellite", new Vector2(0.48f, 0f), new Vector2(0.74f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetSatellite(); });
-        CreateButton(panel, "Mission", new Vector2(0.74f, 0f), new Vector2(1f, 0f), new Vector2(4f, 12f), new Vector2(-10f, 50f), delegate { cameraManager.SetMission(); });
+        CreateButton(panel, "Sat", new Vector2(0.48f, 0f), new Vector2(0.74f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetSatellite(); });
+        CreateButton(panel, "Route", new Vector2(0.74f, 0f), new Vector2(1f, 0f), new Vector2(4f, 12f), new Vector2(-10f, 50f), delegate { cameraManager.SetMission(); });
 
-        RectTransform statusPanel = CreatePanel(parent, "MissionStatusPanel", new Vector2(0.325f, 0.16f), new Vector2(0.675f, 0.36f), new Color(0.04f, 0.07f, 0.11f, 0.88f));
-        missionStatusText = CreateText(statusPanel, string.Empty, 18, TextAnchor.UpperLeft);
+        RectTransform statusPanel = CreatePanel(parent, "CommunicationStatusPanel", new Vector2(0.325f, 0.16f), new Vector2(0.675f, 0.31f), new Color(0.04f, 0.07f, 0.11f, 0.58f));
+        missionStatusText = CreateText(statusPanel, string.Empty, 16, TextAnchor.UpperLeft);
         missionStatusText.rectTransform.offsetMin = new Vector2(18f, 62f);
         missionStatusText.rectTransform.offsetMax = new Vector2(-18f, -14f);
 
-        observationFill = CreateProgressBar(statusPanel, "ObservationProgress", new Vector2(18f, 36f), new Color(1f, 0.68f, 0.12f, 0.95f));
-        transferFill = CreateProgressBar(statusPanel, "TransferProgress", new Vector2(18f, 14f), new Color(0.24f, 1f, 0.84f, 0.95f));
+        observationFill = CreateProgressBar(statusPanel, "RelayLockProgress", new Vector2(18f, 36f), new Color(1f, 0.68f, 0.12f, 0.95f));
+        transferFill = CreateProgressBar(statusPanel, "DeliveryProgress", new Vector2(18f, 14f), new Color(0.24f, 1f, 0.84f, 0.95f));
     }
 
     private void CreateResultPanel(Transform parent)
     {
-        resultPanel = CreatePanel(parent, "MissionResultPanel", new Vector2(0.325f, 0.37f), new Vector2(0.675f, 0.66f), new Color(0.02f, 0.08f, 0.12f, 0.93f));
-        resultText = CreateText(resultPanel, string.Empty, 22, TextAnchor.UpperLeft);
-        resultText.rectTransform.anchorMin = new Vector2(0f, 0.45f);
-        resultText.rectTransform.anchorMax = new Vector2(0.58f, 1f);
+        resultPanel = CreatePanel(parent, "CommunicationResultPanel", new Vector2(0.325f, 0.37f), new Vector2(0.555f, 0.51f), new Color(0.02f, 0.08f, 0.12f, 0.5f));
+        resultText = CreateText(resultPanel, string.Empty, 16, TextAnchor.UpperLeft);
+        resultText.rectTransform.anchorMin = new Vector2(0f, 0.42f);
+        resultText.rectTransform.anchorMax = new Vector2(1f, 1f);
         resultText.rectTransform.offsetMin = new Vector2(20f, 12f);
-        resultText.rectTransform.offsetMax = new Vector2(-8f, -14f);
+        resultText.rectTransform.offsetMax = new Vector2(-20f, -12f);
 
-        resultDataText = CreateText(resultPanel, string.Empty, 16, TextAnchor.UpperLeft);
+        resultDataText = CreateText(resultPanel, string.Empty, 12, TextAnchor.UpperLeft);
         resultDataText.rectTransform.anchorMin = new Vector2(0f, 0f);
-        resultDataText.rectTransform.anchorMax = new Vector2(0.58f, 0.45f);
+        resultDataText.rectTransform.anchorMax = new Vector2(1f, 0.42f);
         resultDataText.rectTransform.offsetMin = new Vector2(20f, 16f);
-        resultDataText.rectTransform.offsetMax = new Vector2(-8f, -4f);
+        resultDataText.rectTransform.offsetMax = new Vector2(-20f, -4f);
 
-        GameObject previewObject = new GameObject("ObservationPreview", typeof(RectTransform), typeof(RawImage));
+        GameObject previewObject = new GameObject("SignalRoutePreview", typeof(RectTransform), typeof(RawImage));
         previewObject.transform.SetParent(resultPanel, false);
         RectTransform previewRect = previewObject.GetComponent<RectTransform>();
         previewRect.anchorMin = new Vector2(0.62f, 0.12f);
@@ -286,13 +286,14 @@ public class UIManager : MonoBehaviour
         previewRect.offsetMax = Vector2.zero;
         previewImage = previewObject.GetComponent<RawImage>();
         previewImage.color = Color.white;
+        previewObject.SetActive(false);
         resultPanel.gameObject.SetActive(false);
     }
 
     private void CreateTimelinePanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "MissionTimelinePanel", new Vector2(0.325f, 0.56f), new Vector2(0.675f, 0.66f), new Color(0.025f, 0.055f, 0.085f, 0.88f));
-        string[] labels = { "Reserve", "Orbit", "Observe", "Store", "Transmit", "Done" };
+        RectTransform panel = CreatePanel(parent, "CommunicationTimelinePanel", new Vector2(0.34f, 0.8f), new Vector2(0.66f, 0.87f), new Color(0.025f, 0.055f, 0.085f, 0.48f));
+        string[] labels = { "Queue", "Route", "Uplink", "Relay", "Downlink", "Done" };
         timelineDots.Clear();
         timelineLabels.Clear();
 
@@ -370,8 +371,8 @@ public class UIManager : MonoBehaviour
             "Altitude: " + satellite.altitudeKm.ToString("0") + " km\n" +
             "Velocity: " + satellite.speedKmPerSec.ToString("0.0") + " km/s\n" +
             "Battery: " + satellite.batteryPercent.ToString("0") + "%\n" +
-            "Data: " + satellite.dataStoragePercent.ToString("0") + "%\n" +
-            "Mission: " + satellite.currentMissionTarget;
+            "Buffer: " + satellite.dataStoragePercent.ToString("0") + "%\n" +
+            "Destination: " + satellite.currentMissionTarget;
     }
 
     private void RefreshMissionPanel()
@@ -383,17 +384,13 @@ public class UIManager : MonoBehaviour
 
         if (titleText != null && simulationManager != null)
         {
-            titleText.text = "OrbitShare Digital Twin | Shared Satellite Mission Platform    |    " + simulationManager.TimeScale.ToString("0.#") + "x";
+            titleText.text = "OrbitShare Relay Twin    |    " + simulationManager.TimeScale.ToString("0.#") + "x";
         }
 
         missionStatusText.text =
-            "Phase: " + MissionPhaseLabel(missionManager.Phase) + "\n" +
-            "Target: " + (missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "None") + "\n" +
-            "Observe/Transfer: " + Mathf.RoundToInt(missionManager.ObservationProgress * 100f) + "% / " + Mathf.RoundToInt(missionManager.TransferProgress * 100f) + "%\n" +
-            "Communication: " + (missionManager.CommunicationAvailable ? "Available" : "Unavailable") + "\n" +
-            "ETA: pass " + missionManager.EstimatedPassSeconds.ToString("0.0") + "s / downlink " + missionManager.EstimatedDownlinkSeconds.ToString("0.0") + "s\n" +
-            "Quality/SLA: " + missionManager.MissionQualityScore + "/100 / " + missionManager.ServiceReliabilityScore + "%\n" +
-            "Result: " + missionManager.ResultMessage;
+            "Phase: " + MissionPhaseLabel(missionManager.Phase) + " | Link: " + (missionManager.CommunicationAvailable ? "Online" : "Offline") + "\n" +
+            "Seoul → " + (missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "None") + "\n" +
+            "Relay/Send: " + Mathf.RoundToInt(missionManager.ObservationProgress * 100f) + "% / " + Mathf.RoundToInt(missionManager.TransferProgress * 100f) + "%";
 
         if (observationFill != null)
         {
@@ -414,12 +411,9 @@ public class UIManager : MonoBehaviour
                 string targetName = missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "Unknown";
                 ObservationTarget target = missionManager.SelectedTarget;
                 resultDataText.text =
-                    "Mission ID: OS-" + System.DateTime.Now.ToString("HHmm") + "\n" +
-                    "Data Size: " + (target != null ? target.estimatedDataMb.ToString("0") : "428") + " MB\n" +
-                    "Resolution: " + (target != null ? target.resolutionMeters.ToString("0.0") : "1.2") + " m/pixel\n" +
-                    "Quality: " + missionManager.MissionQualityScore + "/100\n" +
-                    "Ground Station: Daejeon\n" +
-                    "Delivery: Complete";
+                    "Request ID: OS-" + System.DateTime.Now.ToString("HHmm") + "\n" +
+                    "Payload: " + (target != null ? target.estimatedDataMb.ToString("0") : "128") + " MB | Delay: " + (target != null ? target.resolutionMeters.ToString("0.0") : "0.9") + " s | Score: " + missionManager.MissionQualityScore + "\n" +
+                    "Gateway: Seoul | Delivery: Complete";
                 if (previewImage.texture == null || previewImage.texture.name != targetName + " Preview")
                 {
                     previewImage.texture = CreatePreviewTexture(targetName);
@@ -458,15 +452,15 @@ public class UIManager : MonoBehaviour
             }
             else if (selected.ownerType != SatelliteOwnerType.Shared)
             {
-                reservationHintText.text = "Only shared satellites can be reserved.";
+                reservationHintText.text = "Select active relay to queue.";
             }
             else if (selected.availabilityState != SatelliteAvailabilityState.Available && missionManager.Phase == MissionPhase.Idle)
             {
-                reservationHintText.text = "The shared satellite is not currently rentable.";
+                reservationHintText.text = "Active relay unavailable.";
             }
             else
             {
-                reservationHintText.text = "Reserve SAT-S01 to start an observation mission.";
+                reservationHintText.text = "Seoul fixed. Pick destination, then queue.";
             }
         }
     }
@@ -570,28 +564,7 @@ public class UIManager : MonoBehaviour
 
     private Font CreateUIFont()
     {
-        string[] fontPaths =
-        {
-            "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
-            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-        };
-
-        foreach (string path in fontPaths)
-        {
-            if (!System.IO.File.Exists(path))
-            {
-                continue;
-            }
-
-            Font font = new Font(path);
-            if (font != null)
-            {
-                return font;
-            }
-        }
-
-        return Resources.GetBuiltinResource<Font>("Arial.ttf");
+        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
     private Button CreateListButton(Transform parent, string label, UnityAction action)
@@ -731,10 +704,10 @@ public class UIManager : MonoBehaviour
         texture.name = targetName + " Preview";
         Color baseColor = targetName == "Seoul"
             ? new Color(0.08f, 0.12f, 0.16f)
-            : targetName == "Jeju" ? new Color(0.04f, 0.18f, 0.2f) : new Color(0.02f, 0.1f, 0.22f);
+            : targetName == "New York" ? new Color(0.05f, 0.1f, 0.18f) : new Color(0.04f, 0.12f, 0.18f);
         Color scanColor = targetName == "Seoul"
             ? new Color(0.3f, 0.95f, 1f)
-            : targetName == "Jeju" ? new Color(0.4f, 1f, 0.58f) : new Color(0.22f, 0.5f, 1f);
+            : targetName == "New York" ? new Color(0.3f, 0.7f, 1f) : new Color(0.55f, 0.9f, 1f);
 
         for (int y = 0; y < texture.height; y++)
         {
@@ -744,12 +717,11 @@ public class UIManager : MonoBehaviour
                 float noise = Mathf.PerlinNoise(x * 0.08f, y * 0.08f);
                 Color color = Color.Lerp(baseColor, scanColor, grid + noise * 0.18f);
 
-                if (targetName == "Jeju")
+                if (targetName == "New York")
                 {
-                    Vector2 p = new Vector2((x - 64f) / 34f, (y - 48f) / 20f);
-                    if (p.sqrMagnitude < 1f)
+                    if ((x > 22 && x < 110 && y > 28 && y < 72 && (x + y) % 11 < 3) || (x > 54 && x < 74 && y > 18 && y < 82))
                     {
-                        color = Color.Lerp(color, new Color(0.18f, 0.55f, 0.24f), 0.85f);
+                        color = Color.Lerp(color, new Color(0.72f, 0.78f, 0.9f), 0.8f);
                     }
                 }
                 else if (targetName == "Seoul")
@@ -761,7 +733,10 @@ public class UIManager : MonoBehaviour
                 }
                 else
                 {
-                    color = Color.Lerp(color, scanColor, Mathf.Sin((x + y) * 0.12f) * 0.08f + 0.08f);
+                    if ((x > 18 && x < 112 && y > 36 && y < 58) || (x > 42 && x < 86 && y > 24 && y < 74 && x % 10 < 2))
+                    {
+                        color = Color.Lerp(color, new Color(0.68f, 0.72f, 0.76f), 0.8f);
+                    }
                 }
 
                 texture.SetPixel(x, y, color);
@@ -785,15 +760,15 @@ public class UIManager : MonoBehaviour
             case MissionPhase.Idle:
                 return "Idle";
             case MissionPhase.Reserved:
-                return "Reserved";
+                return "Queued";
             case MissionPhase.Running:
-                return "Orbiting";
+                return "Routing";
             case MissionPhase.Observing:
-                return "Observing";
+                return "Uplink";
             case MissionPhase.ObservationComplete:
-                return "Stored";
+                return "Relay Locked";
             case MissionPhase.Transmitting:
-                return "Transmitting";
+                return "Delivering";
             case MissionPhase.Complete:
                 return "Complete";
             default:

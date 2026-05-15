@@ -38,8 +38,8 @@ public class MissionManager : MonoBehaviour
     public int MissionQualityScore { get; private set; }
     public int ServiceReliabilityScore { get; private set; }
 
-    private const float RequiredObservationSeconds = 1.2f;
-    private const float StorageAfterObservation = 42f;
+    private const float RequiredRelayLockSeconds = 1.2f;
+    private const float QueuedMessageBufferPercent = 42f;
     private bool demoAssist;
 
     private void Start()
@@ -48,8 +48,8 @@ public class MissionManager : MonoBehaviour
         {
             SelectTarget(Targets[0].targetName);
         }
-        ResultMessage = "Select the shared satellite and reserve an observation target.";
-        CompletionSummary = "Mission result summary appears after completion.";
+        ResultMessage = "Seoul fixed. Choose one relay destination.";
+        CompletionSummary = "Result appears after delivery.";
     }
 
     private void Update()
@@ -88,7 +88,7 @@ public class MissionManager : MonoBehaviour
 
         if (Phase == MissionPhase.Idle)
         {
-            ResultMessage = "Target selected: " + SelectedTarget.targetName;
+            ResultMessage = "Destination selected: " + SelectedTarget.targetName;
         }
 
         NotifyChanged();
@@ -106,13 +106,13 @@ public class MissionManager : MonoBehaviour
             Phase = MissionPhase.Reserved;
             ObservationProgress = 0f;
             TransferProgress = 0f;
-            ResultMessage = "Reserved observation target: " + SelectedTarget.targetName;
-            CompletionSummary = "Satellite: SAT-S01\nTarget: " + SelectedTarget.targetName + "\nState: Waiting for mission start";
+            ResultMessage = "Queued Seoul → " + SelectedTarget.targetName + ".";
+            CompletionSummary = "Seoul → " + SelectedTarget.targetName + "\nWaiting";
             NotifyChanged();
         }
         else
         {
-            ResultMessage = "SAT-S01 must be rentable before reservation.";
+            ResultMessage = "Active relay required to queue.";
             NotifyChanged();
         }
     }
@@ -126,8 +126,8 @@ public class MissionManager : MonoBehaviour
 
         Phase = MissionPhase.Running;
         satelliteManager.SetSharedState(SatelliteAvailabilityState.InMission);
-        ResultMessage = "Mission running: waiting for target pass.";
-        CompletionSummary = "Satellite: SAT-S01\nTarget: " + SelectedTarget.targetName + "\nState: Orbiting toward target";
+        ResultMessage = "Routing to " + SelectedTarget.targetName + ".";
+        CompletionSummary = "Seoul → " + SelectedTarget.targetName + "\nRouting";
         NotifyChanged();
     }
 
@@ -153,7 +153,7 @@ public class MissionManager : MonoBehaviour
         if (ObservationProgress >= 1f && Phase != MissionPhase.Complete && groundStation != null)
         {
             AlignSatelliteTo(groundStation.transform);
-            ResultMessage = "Fast demo: entering ground station range.";
+            ResultMessage = "Quick: syncing Seoul gateway.";
             NotifyChanged();
             return;
         }
@@ -162,7 +162,7 @@ public class MissionManager : MonoBehaviour
         {
             StartMission();
             AlignSatelliteTo(SelectedTarget.transform);
-            ResultMessage = "Fast demo: moved near observation window.";
+            ResultMessage = "Quick: aligned to destination.";
             NotifyChanged();
             return;
         }
@@ -170,7 +170,7 @@ public class MissionManager : MonoBehaviour
         if (Phase == MissionPhase.Running || Phase == MissionPhase.Observing)
         {
             AlignSatelliteTo(SelectedTarget.transform);
-            ResultMessage = "Fast demo: entering observation window.";
+            ResultMessage = "Quick: locking path.";
             NotifyChanged();
             return;
         }
@@ -178,7 +178,7 @@ public class MissionManager : MonoBehaviour
         if ((Phase == MissionPhase.ObservationComplete || Phase == MissionPhase.Transmitting) && groundStation != null)
         {
             AlignSatelliteTo(groundStation.transform);
-            ResultMessage = "Fast demo: entering ground station range.";
+            ResultMessage = "Quick: syncing Seoul gateway.";
             NotifyChanged();
         }
     }
@@ -190,8 +190,8 @@ public class MissionManager : MonoBehaviour
         ObservationProgress = 0f;
         TransferProgress = 0f;
         CommunicationAvailable = false;
-        ResultMessage = "Ready for a new mission.";
-        CompletionSummary = "Mission result summary appears after completion.";
+        ResultMessage = "Ready for new relay request.";
+        CompletionSummary = "Result appears after delivery.";
 
         if (satelliteManager != null)
         {
@@ -218,17 +218,17 @@ public class MissionManager : MonoBehaviour
         {
             Phase = MissionPhase.Observing;
             float delta = simulationManager != null ? simulationManager.ScaledDeltaTime : Time.deltaTime;
-            ObservationProgress = Mathf.Clamp01(ObservationProgress + delta / RequiredObservationSeconds);
-            ResultMessage = "Observing: " + SelectedTarget.targetName;
+            ObservationProgress = Mathf.Clamp01(ObservationProgress + delta / RequiredRelayLockSeconds);
+            ResultMessage = "Locking: Seoul → relay → " + SelectedTarget.targetName;
 
             if (ObservationProgress >= 1f)
             {
                 Phase = MissionPhase.ObservationComplete;
-                ResultMessage = "Observation complete: data stored.";
-                CompletionSummary = "Satellite: SAT-S01\nTarget: " + SelectedTarget.targetName + "\nState: Observation data stored\nData: " + SelectedTarget.estimatedDataMb.ToString("0") + " MB\nTransfer: Waiting for ground station";
+                ResultMessage = "Path locked. Message buffered.";
+                CompletionSummary = "Seoul → " + SelectedTarget.targetName + "\nPath locked\nPayload: " + SelectedTarget.estimatedDataMb.ToString("0") + " MB";
                 if (satelliteManager != null)
                 {
-                    satelliteManager.UpdateSharedMission(SelectedTarget.targetName, StorageAfterObservation);
+                    satelliteManager.UpdateSharedMission(SelectedTarget.targetName, QueuedMessageBufferPercent);
                 }
             }
 
@@ -237,7 +237,7 @@ public class MissionManager : MonoBehaviour
         else if (Phase == MissionPhase.Observing)
         {
             Phase = MissionPhase.Running;
-            ResultMessage = "Waiting for next target pass.";
+            ResultMessage = "Waiting for next path.";
             NotifyChanged();
         }
     }
@@ -268,14 +268,14 @@ public class MissionManager : MonoBehaviour
         Phase = MissionPhase.Transmitting;
         float delta = simulationManager != null ? simulationManager.ScaledDeltaTime : Time.deltaTime;
         TransferProgress = Mathf.Clamp01(TransferProgress + delta * 0.22f);
-        ResultMessage = "Transmitting to ground station.";
+        ResultMessage = "Relaying Seoul → " + (SelectedTarget != null ? SelectedTarget.targetName : "destination") + ".";
 
         if (TransferProgress >= 1f)
         {
             Phase = MissionPhase.Complete;
             demoAssist = false;
-            ResultMessage = "Mission complete: data delivered.";
-            CompletionSummary = "Mission Complete\nSatellite: SAT-S01\nTarget: " + (SelectedTarget != null ? SelectedTarget.targetName : "None") + "\nResult: Observation data delivered\nQuality: " + MissionQualityScore + "/100\nStatus: Success";
+            ResultMessage = "Relay complete. Delivered.";
+            CompletionSummary = "Relay Complete\nSeoul → " + (SelectedTarget != null ? SelectedTarget.targetName : "None") + " | Delivered";
             if (satelliteManager != null)
             {
                 satelliteManager.SetSharedState(SatelliteAvailabilityState.MissionComplete);

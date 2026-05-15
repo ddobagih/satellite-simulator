@@ -13,7 +13,7 @@ public class OrbitLineRenderer : MonoBehaviour
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.loop = true;
         lineRenderer.useWorldSpace = true;
-        lineRenderer.widthMultiplier = 0.025f;
+        lineRenderer.widthMultiplier = 0.012f;
     }
 
     private void Start()

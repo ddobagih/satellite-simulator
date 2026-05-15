@@ -9,28 +9,33 @@ Screen: 640x480
 - Scene objects present: PASS
 - Bootstrap references connected: PASS
 - Fleet initialized: PASS
+- Relay constellation has exactly 24 visible satellites: PASS (24)
 - Satellite core data valid: PASS
 - Target core data valid: PASS
+- Default destination is New York: PASS
+- Seoul sender gateway valid: PASS
+- Relay summary terminology valid: PASS
 - Fast demo reaches mission complete: PASS
-- Observation reaches 100%: PASS
-- Transfer reaches 100%: PASS
+- Relay lock reaches 100%: PASS
+- Delivery reaches 100%: PASS
 - Mission metrics calculated: PASS
 - Score range 0-100: PASS
 - Runtime Error/Exception logs: PASS (0)
 
 ## Runtime State
 - Mission phase: Complete
-- Target: Seoul
-- Observation progress: 100%
-- Transfer progress: 100%
+- Sender: Seoul
+- Destination: New York
+- Relay lock progress: 100%
+- Delivery progress: 100%
 - Communication available: True
-- Mission quality score: 85
-- Service reliability score: 93
+- Mission quality score: 71
+- Service reliability score: 91
 - Satellite count: 3
 - SAT-S01 state: MissionComplete
 - SAT-S01 storage: 0
 - Target count: 3
-- Targets present: Seoul=True, Jeju=True, Pacific=True
+- Destinations present: Seoul=True, New York=True, London=True
 
 ## Notes
 - Unity editor token, REST port, curl, and update-check warnings are environment noise unless accompanied by runtime exceptions.

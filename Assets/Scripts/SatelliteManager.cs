@@ -14,9 +14,9 @@ public class SatelliteManager : MonoBehaviour
     private void Awake()
     {
         Satellites.Clear();
-        Satellites.Add(new SatelliteData("SAT-P01", SatelliteOwnerType.Personal, "Private User", SatelliteAvailabilityState.Available, "Personal imaging", 520f, 7.5f, 91f));
-        Satellites.Add(new SatelliteData("SAT-C01", SatelliteOwnerType.Company, "GeoVision Corp.", SatelliteAvailabilityState.InMission, "Commercial imaging", 650f, 7.4f, 74f));
-        Satellites.Add(new SatelliteData("SAT-S01", SatelliteOwnerType.Shared, "OrbitShare", SatelliteAvailabilityState.Available, "Short-term rental", 550f, 7.6f, 82f));
+        Satellites.Add(new SatelliteData("SAT-P01", SatelliteOwnerType.Personal, "Relay Network", SatelliteAvailabilityState.Available, "Standby relay node", 520f, 7.5f, 91f));
+        Satellites.Add(new SatelliteData("SAT-C01", SatelliteOwnerType.Company, "Relay Network", SatelliteAvailabilityState.InMission, "Backbone relay node", 650f, 7.4f, 74f));
+        Satellites.Add(new SatelliteData("SAT-S01", SatelliteOwnerType.Shared, "OrbitShare", SatelliteAvailabilityState.Available, "One-shot message relay", 550f, 7.6f, 82f));
         SelectSatellite("SAT-S01");
     }
 

@@ -13,6 +13,11 @@ public class CameraManager : MonoBehaviour
     private Vector3 desiredLookAt;
     private bool useSmoothMove;
 
+    public string CurrentMode
+    {
+        get { return mode; }
+    }
+
     private void Start()
     {
         if (targetCamera != null)

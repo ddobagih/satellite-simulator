@@ -3,6 +3,67 @@
 이 문서는 AI 코딩 에이전트에게 Unity 프로젝트 구현을 맡기기 위한 Markdown 작업 지시서이다.  
 이전의 단일 위성 관측 시뮬레이터가 아니라, **미래형 개인·기업·공유 위성 운영 관리 플랫폼**을 Unity로 시각화하는 것이 목표다.
 
+## 2026-05-16 현재 제출/발표 기준
+
+이 문서의 아래 원문은 초기 공유 위성/관측 플랫폼 기획을 보존한 것이다. 현재 구현과 제출 설명의 기준은 `README.md`, `WORK_LOG.md`, `orbitshare-validation.md`에 정리된 최신 릴레이 컨셉이며, 발표에서는 아래 기준을 우선 사용한다.
+
+### 현재 한 줄 설명
+
+**OrbitShare는 서울 고정 발신자가 Seoul, New York, London 중 하나의 목적지를 선택하고, 24개 위성 릴레이망을 통해 1회성 메시지 전달 과정을 Unity 3D로 시각화하는 통신 릴레이 시뮬레이터다.**
+
+### 현재 시연 흐름
+
+1. 실행 후 서울 발신자와 3개 목적지, 24개 위성망을 보여준다.
+2. 목적지 도시를 선택한다.
+3. `Queue`로 요청을 등록하고 `Relay` 또는 `Quick Relay`로 전달을 시작한다.
+4. `10x` 배속으로 relay lock, gateway sync, delivery 진행을 보여준다.
+5. 완료 패널과 통신 결과를 확인한다.
+
+### 제출물 상태 요약
+
+| 제출 항목 | 현재 상태 | 근거 / 확인 필요 |
+|---|---|---|
+| Unity 프로젝트 | 존재 | `Assets/`, `Packages/`, `ProjectSettings/`, `Assets/Scenes/MainScene.unity` |
+| README / 작업 로그 | 존재 | `README.md`, `WORK_LOG.md` |
+| 자동 검증 리포트 | 존재 | `orbitshare-validation.md` 기준 `Result: PASS` |
+| Linux 빌드 | 존재 | `Builds/Linux/OrbitShare.x86_64` |
+| Windows 빌드 | 확인 필요 | `Builds/Windows/OrbitShare.exe` 미확인 |
+| 발표 PPT/PDF | 확인 필요 | `.ppt`, `.pptx`, `.pdf` 파일 미확인 |
+| 시연 영상 | 확인 필요 | `orbitshare-demo.gif`는 있으나 `.mp4`, `.mov` 파일 미확인 |
+| 스크린샷/프레임 | 존재 | `orbitshare-playmode.png`, `orbitshare-contact-sheet.png`, `DemoFrames/` |
+
+### 최신 발표 Q&A
+
+**Q1. 왜 이 주제를 선택했나요?**
+
+대규모 상시 위성망이 아니라, 특정 시점에 한 번 필요한 메시지를 위성 릴레이로 전달하는 미래 서비스를 시각적으로 설명하기 좋다고 판단했다. 과제 범위 안에서 목적지 선택, 릴레이 경로, 전달 완료까지 한 흐름으로 보여줄 수 있다.
+
+**Q2. 실제 위성 궤도 계산인가요?**
+
+아니다. 발표 안정성을 위해 원형 궤도와 단순화된 거리/각도 기반 판정을 사용했다. 실제 TLE, 케플러 방정식, 지상국 네트워크 연동은 구현 범위 밖이다.
+
+**Q3. 24개 위성은 모두 조작 가능한가요?**
+
+3개 주요 릴레이 위성과 21개 배경 릴레이 노드로 구성된 시각적 위성망이다. 핵심은 한 번의 서울 발신 요청이 위성망을 거쳐 목적지로 전달되는 흐름을 명확히 보여주는 것이다.
+
+**Q4. 검증은 어떻게 했나요?**
+
+`OrbitShareEditorAutomation.ValidateMissionFlow` 자동 검증 리포트에서 Fast Demo 완료, 24개 위성, 3개 목적지, relay lock/delivery 100%, Runtime Error/Exception 0을 확인했다. 최신 GUI 발표 리허설과 Windows 빌드 필요 여부는 제출 전 별도 확인 항목이다.
+
+**Q5. Asset Store 에셋이 없어도 실행되나요?**
+
+현재 `SpaceSkybox.mat`, `SpaceStation.prefab` 런타임 후크가 있으며, 위성 모델/프리미엄 지구 머티리얼/SFX는 없으면 절차적 시각화와 생성 톤으로 대체된다.
+
+### 최신 성공 기준
+
+- 서울 발신자와 Seoul/New York/London 목적지가 화면과 문서에서 일관되게 설명된다.
+- 24개 위성 릴레이망이 생성되고, 자동 검증에서 정확히 24개로 확인된다.
+- `Quick Relay` 또는 `Queue`/`Relay` 흐름이 통신 완료 상태까지 도달한다.
+- `orbitshare-validation.md`가 `Result: PASS`와 Runtime Error/Exception `PASS (0)`를 유지한다.
+- Linux 빌드 산출물이 존재하고, Windows 빌드는 제출 요구 여부에 따라 생성하거나 제외 사유를 명확히 기록한다.
+- README, WORK_LOG, Asset Store 문서가 포함 에셋과 optional fallback 상태를 서로 충돌 없이 설명한다.
+- 발표 PPT/PDF, MP4 필요 여부처럼 현재 미확정인 제출 형식은 완료로 쓰지 않고 확인 필요로 분리한다.
+
 ---
 
 ## 0. 프로젝트 개요

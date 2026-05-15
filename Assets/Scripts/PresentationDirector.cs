@@ -7,6 +7,12 @@ public class PresentationDirector : MonoBehaviour
     public bool autoCamera = true;
 
     private MissionPhase lastPhase = MissionPhase.Idle;
+    private int handledPhaseMask;
+
+    public bool HasHandledPhase(MissionPhase phase)
+    {
+        return (handledPhaseMask & PhaseBit(phase)) != 0;
+    }
 
     private void OnEnable()
     {
@@ -34,6 +40,7 @@ public class PresentationDirector : MonoBehaviour
         missionManager = mission;
         cameraManager = cameras;
         lastPhase = mission != null ? mission.Phase : MissionPhase.Idle;
+        handledPhaseMask = 0;
 
         if (missionManager != null)
         {
@@ -49,6 +56,7 @@ public class PresentationDirector : MonoBehaviour
         }
 
         lastPhase = missionManager.Phase;
+        bool cutIssued = true;
         switch (lastPhase)
         {
             case MissionPhase.Reserved:
@@ -67,6 +75,19 @@ public class PresentationDirector : MonoBehaviour
             case MissionPhase.Complete:
                 cameraManager.SetOverview();
                 break;
+            default:
+                cutIssued = false;
+                break;
         }
+
+        if (cutIssued)
+        {
+            handledPhaseMask |= PhaseBit(lastPhase);
+        }
+    }
+
+    private static int PhaseBit(MissionPhase phase)
+    {
+        return 1 << (int)phase;
     }
 }

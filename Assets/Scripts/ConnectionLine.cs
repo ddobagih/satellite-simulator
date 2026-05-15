@@ -12,7 +12,7 @@ public class ConnectionLine : MonoBehaviour
     {
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.positionCount = 2;
-        lineRenderer.widthMultiplier = 0.035f;
+        lineRenderer.widthMultiplier = 0.065f;
         lineRenderer.enabled = false;
     }
 

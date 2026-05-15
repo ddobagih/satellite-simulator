@@ -1,6 +1,6 @@
 # OrbitShare
 
-Unity 3D assignment project for a future shared satellite operation platform.
+Unity 3D project for a future one-shot satellite communication relay.
 
 ## Run
 
@@ -12,42 +12,43 @@ The scene is generated at runtime by `Assets/Scripts/OrbitShareBootstrap.cs`.
 
 ## Demo Flow
 
-1. Select `SAT-S01` in the satellite list.
-2. Select an observation target: Seoul, Jeju, or Pacific.
-3. Click `Reserve`.
-4. Click `Start`.
+1. Sender is fixed at Seoul.
+2. Select one destination city: Seoul, New York, or London.
+3. Click `Queue`.
+4. Click `Relay`.
 5. Use `10x` time scale for a faster demo.
-6. Watch the satellite complete observation, connect to the ground station, transmit data, and show mission completion.
+6. Watch the 24-satellite constellation route a one-shot message and show communication completion.
 
-For a stable presentation, click `Fast Demo`. It reserves and starts the shared satellite mission if needed, moves the satellite near the observation window, and assists the transfer phase after observation is complete.
+For a quick run, click `Quick Relay`. It queues and starts the request if needed, aligns the active relay satellite, and assists the delivery phase.
 
 ## Implemented Features
 
 - 3D Earth with slow rotation
-- Procedural Earth texture, atmosphere shell, and starfield
-- Three satellite entries: personal, company, shared
-- Moving shared satellite with circular orbit and orbit line
-- Animated company satellite for a more active platform scene
+- Procedural Earth texture and atmosphere shell with an imported space skybox hook
+- 24 visible satellites around the 3D Earth
+- Three controllable relay assets plus 21 background relay nodes
+- Active relay satellite with circular orbit and orbit line
+- Animated relay satellites for a denser communication constellation
 - Selected satellite focus halo and camera follow target switching
 - Satellite list and detail panels
-- Runtime Canvas UI plus a presentation-safe IMGUI overlay
-- Shared satellite reservation flow
-- Reservation eligibility guidance for non-shared satellites
-- Observation target selection and highlighted markers
+- Runtime Canvas UI with an optional IMGUI fallback overlay
+- One-shot communication request flow from Seoul
+- Relay request guidance for the Seoul-origin one-shot communication flow
+- Destination city selection and highlighted markers
 - Time controls: Pause, 1x, 5x, 10x
-- Camera modes: Overview, Earth, Satellite, Mission
+- Camera modes: Overview, Earth, Satellite, Route
 - Smooth camera transitions
 - Automatic presentation camera cuts during mission phases
-- Distance/angle based observation success
-- Observation scan beam, ground station communication range, and connection line
-- Data transfer progress and mission completion status
-- Presentation-safe fast demo button
-- Mission timeline UI
-- Mission intelligence panel with pass ETA, downlink ETA, rental quote, data estimate, resolution, quality score, and SLA reliability
-- Final mission result summary panel with generated data card and observation preview
+- Distance/angle based relay path lock
+- Destination signal beam, Seoul gateway communication range, and connection line
+- Message delivery progress and communication completion status
+- Quick relay button
+- Communication timeline UI
+- Relay intelligence panel with route ETA, gateway ETA, payload estimate, route score, and SLA reliability
+- Compact final communication result summary panel
 - Procedural city lights and extra orbit-slot rings for a denser digital-twin scene
 - OrbitShare Station object with an Asset Store prefab hook and procedural fallback
-- Procedural UI sound feedback for reservation, observation, transmission, and completion
+- Procedural UI sound feedback for queueing, relay lock, delivery, and completion
 - Unity internal demo-frame capture utility for visual verification
 - Automated Play Mode validation report at `orbitshare-validation.md`
 
@@ -76,19 +77,19 @@ LD_LIBRARY_PATH=/home/ddobagi/Code/grade3/computergraphics/assignment1/.unity-li
 It enters Play mode, runs the fast demo mission flow, and writes `orbitshare-validation.md`.
 The editor automation intentionally exits Play mode after validation, so that behavior is not a game crash.
 
-## Presentation Notes
+## Concept Notes
 
 ### Topic
 
-OrbitShare is a future satellite operation platform where personal users, companies, and shared satellite assets are managed in one service.
+OrbitShare is a future one-shot satellite communication relay. The local sender is fixed at Seoul, and the user chooses one destination city for a single message delivery.
 
 ### Practicality
 
-The project visualizes a service workflow instead of only showing orbital movement: satellite selection, reservation, observation, ground station communication, data transfer, and result delivery.
+The project visualizes a communication workflow instead of only showing orbital movement: destination selection, request queueing, relay path lock, Seoul gateway sync, and message delivery.
 
 ### Creativity
 
-The key idea is a shared satellite rental model. The user can reserve `SAT-S01`, assign a target region, and watch the operation complete as a digital twin scenario.
+The key idea is a small-scale alternative to large continuous satellite networks: one Seoul-origin request is routed once through a visible relay constellation.
 
 ### Limitations
 
@@ -96,7 +97,9 @@ The orbit is simplified to a circular path for presentation stability. It does n
 
 ### Optional Asset Store Upgrade Points
 
-This project currently avoids imported Asset Store packages so it opens reliably. See `ASSET_STORE_IMPORT.md` for concrete candidates and integration points. If importing Asset Store assets in Unity Editor, the best upgrade areas are:
+This project currently includes two lightweight Asset Store runtime hooks: `SpaceSkybox.mat` and `SpaceStation.prefab`. Missing optional assets fall back to procedural visuals and generated tones, so the project still opens reliably. See `ASSET_STORE_IMPORT.md` for the exact hook names and additional candidates.
+
+Optional upgrade areas are:
 
 - High-resolution Earth material or space skybox
 - Low-poly satellite model pack

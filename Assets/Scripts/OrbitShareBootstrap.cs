@@ -44,18 +44,18 @@ public class OrbitShareBootstrap : MonoBehaviour
             earthMaterial = importedEarthMaterial;
         }
         Material landMaterial = CreateMaterial("Earth Land", new Color(0.08f, 0.52f, 0.28f));
-        Material satelliteMaterial = CreateMaterial("Satellite Silver", new Color(0.78f, 0.82f, 0.86f));
+        Material satelliteMaterial = CreateEmissiveMaterial("Satellite Silver", new Color(0.88f, 0.92f, 0.96f), 0.45f);
         Material panelMaterial = CreateMaterial("Solar Panel", new Color(0.05f, 0.12f, 0.26f));
         Material orbitMaterial = CreateEmissiveMaterial("Orbit Cyan", new Color(0.25f, 0.78f, 1f), 1.2f);
-        Material targetMaterial = CreateEmissiveMaterial("Target Orange", new Color(1f, 0.48f, 0.12f), 0.8f);
-        Material selectedTargetMaterial = CreateEmissiveMaterial("Selected Target", new Color(1f, 0.9f, 0.18f), 1.5f);
+        Material targetMaterial = CreateEmissiveMaterial("Destination City", new Color(1f, 0.48f, 0.12f), 0.8f);
+        Material selectedTargetMaterial = CreateEmissiveMaterial("Selected Destination", new Color(1f, 0.9f, 0.18f), 1.5f);
         Material stationMaterial = CreateEmissiveMaterial("Ground Station Green", new Color(0.2f, 1f, 0.55f), 1f);
         Material lineMaterial = CreateEmissiveMaterial("Connection Line", new Color(0.24f, 1f, 0.84f), 1.6f);
         Material atmosphereMaterial = CreateTransparentMaterial("Atmosphere", new Color(0.2f, 0.65f, 1f, 0.16f));
-        Material targetHaloMaterial = CreateTransparentMaterial("Observation Footprint", new Color(1f, 0.62f, 0.08f, 0.18f));
-        Material targetActiveHaloMaterial = CreateTransparentMaterial("Active Observation Footprint", new Color(1f, 0.92f, 0.18f, 0.32f));
-        Material stationRangeMaterial = CreateTransparentMaterial("Communication Range", new Color(0.2f, 0.95f, 0.72f, 0.13f));
-        Material stationActiveRangeMaterial = CreateTransparentMaterial("Active Communication Range", new Color(0.24f, 1f, 0.84f, 0.32f));
+        Material targetHaloMaterial = CreateTransparentMaterial("Signal Footprint", new Color(1f, 0.62f, 0.08f, 0.18f));
+        Material targetActiveHaloMaterial = CreateTransparentMaterial("Active Signal Footprint", new Color(1f, 0.92f, 0.18f, 0.22f));
+        Material stationRangeMaterial = CreateTransparentMaterial("Communication Range", new Color(0.2f, 0.95f, 0.72f, 0.08f));
+        Material stationActiveRangeMaterial = CreateTransparentMaterial("Active Communication Range", new Color(0.24f, 1f, 0.84f, 0.18f));
         Material focusHaloMaterial = CreateTransparentMaterial("Selected Satellite Focus", new Color(1f, 0.82f, 0.18f, 0.22f));
         Material cityLightMaterial = CreateEmissiveMaterial("City Lights", new Color(1f, 0.78f, 0.34f), 1.8f);
         Material secondaryOrbitMaterial = CreateTransparentMaterial("Secondary Orbit Slot", new Color(0.42f, 0.62f, 1f, 0.22f));
@@ -70,6 +70,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         if (importedSkybox != null)
         {
             RenderSettings.skybox = importedSkybox;
+            camera.clearFlags = CameraClearFlags.Skybox;
         }
         else
         {
@@ -112,6 +113,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         GameObject companySatellite = CreateStaticSatellite("SAT-C01", satellitesRoot.transform, satelliteMaterial, panelMaterial, importedSatellitePrefab, new Vector3(4.9f, -1.5f, 4.4f));
         EnterpriseSatelliteAnimator companyAnimator = companySatellite.AddComponent<EnterpriseSatelliteAnimator>();
         companyAnimator.simulationManager = simulationManager;
+        CreateRelayConstellation(satellitesRoot.transform, satelliteMaterial, panelMaterial, importedSatellitePrefab, simulationManager);
         GameObject orbitStation = CreateSpaceStation("OrbitShareStation", satellitesRoot.transform, stationHullMaterial, stationAccentMaterial, importedStationPrefab);
         SpaceStationAnimator stationAnimator = orbitStation.GetComponent<SpaceStationAnimator>();
         if (stationAnimator == null)
@@ -125,33 +127,34 @@ public class OrbitShareBootstrap : MonoBehaviour
         orbitRenderer.material = orbitMaterial;
         OrbitLineRenderer orbitLine = orbitLines.AddComponent<OrbitLineRenderer>();
         orbitLine.satelliteOrbit = satelliteOrbit;
-        CreateStaticOrbitRing("Personal Orbit Slot", orbitLines.transform, 6.55f, 8f, secondaryOrbitMaterial);
-        CreateStaticOrbitRing("Enterprise Orbit Slot", orbitLines.transform, 7.85f, -18f, secondaryOrbitMaterial);
+        CreateStaticOrbitRing("Relay Orbit Slot A", orbitLines.transform, 6.3f, -32f, secondaryOrbitMaterial);
+        CreateStaticOrbitRing("Relay Orbit Slot B", orbitLines.transform, 7.25f, 5f, secondaryOrbitMaterial);
+        CreateStaticOrbitRing("Relay Orbit Slot C", orbitLines.transform, 8.2f, 32f, secondaryOrbitMaterial);
 
-        GameObject targetRoot = new GameObject("ObservationTargets");
-        ObservationTarget seoul = CreateTarget("SeoulTarget", "Seoul", targetRoot.transform, targetMaterial, selectedTargetMaterial, 37.56f, 126.97f, 428f, 1.2f, 320, "High Priority", 9f);
-        ObservationTarget jeju = CreateTarget("JejuTarget", "Jeju", targetRoot.transform, targetMaterial, selectedTargetMaterial, 33.5f, 126.53f, 312f, 0.9f, 260, "Standard", 14f);
-        ObservationTarget pacific = CreateTarget("PacificTarget", "Pacific", targetRoot.transform, targetMaterial, selectedTargetMaterial, 0f, -160f, 680f, 2.4f, 190, "Wide Area", 4f);
+        GameObject targetRoot = new GameObject("RequestCities");
+        ObservationTarget seoul = CreateTarget("SeoulCity", "Seoul", targetRoot.transform, targetMaterial, selectedTargetMaterial, 37.56f, 126.97f, 64f, 0.4f, 120, "Local Loopback", 3f);
+        ObservationTarget newYork = CreateTarget("NewYorkCity", "New York", targetRoot.transform, targetMaterial, selectedTargetMaterial, 40.71f, -74.01f, 128f, 0.9f, 220, "Trans-Pacific Relay", 12f);
+        ObservationTarget london = CreateTarget("LondonCity", "London", targetRoot.transform, targetMaterial, selectedTargetMaterial, 51.51f, -0.13f, 96f, 0.7f, 190, "Europe Relay", 8f);
 
-        GameObject groundStationObject = CreateGroundStation(stationMaterial, 36.35f, 127.38f);
+        GameObject groundStationObject = CreateGroundStation(stationMaterial, 37.56f, 126.97f);
         GroundStation groundStation = groundStationObject.AddComponent<GroundStation>();
-        GameObject stationRange = CreateSurfaceDisc("GroundStationCommunicationRange", groundStationObject.transform.position, 1.55f, stationRangeMaterial);
+        GameObject stationRange = CreateSurfaceDisc("SeoulGatewayCommunicationRange", groundStationObject.transform.position, 1.18f, stationRangeMaterial);
 
-        GameObject connectionObject = new GameObject("ConnectionLine");
+        GameObject connectionObject = new GameObject("SeoulUplinkLine");
         LineRenderer connectionRenderer = connectionObject.AddComponent<LineRenderer>();
         connectionRenderer.material = lineMaterial;
         ConnectionLine connectionLine = connectionObject.AddComponent<ConnectionLine>();
         connectionLine.satellite = sharedSatellite.transform;
         connectionLine.groundStation = groundStationObject.transform;
 
-        GameObject scanObject = new GameObject("ObservationScanBeam");
+        GameObject scanObject = new GameObject("DestinationDownlinkBeam");
         LineRenderer scanRenderer = scanObject.AddComponent<LineRenderer>();
         scanRenderer.positionCount = 2;
-        scanRenderer.widthMultiplier = 0.055f;
+        scanRenderer.widthMultiplier = 0.075f;
         scanRenderer.material = lineMaterial;
         scanRenderer.enabled = false;
 
-        GameObject targetHalo = CreateSurfaceDisc("SelectedObservationFootprint", seoul.transform.position, 1.05f, targetHaloMaterial);
+        GameObject targetHalo = CreateSurfaceDisc("SelectedDestinationFootprint", newYork.transform.position, 0.82f, targetHaloMaterial);
         MissionVisualController missionVisuals = managers.AddComponent<MissionVisualController>();
         missionVisuals.missionManager = missionManager;
         missionVisuals.satelliteOrbit = satelliteOrbit;
@@ -169,14 +172,14 @@ public class OrbitShareBootstrap : MonoBehaviour
         missionManager.satelliteOrbit = satelliteOrbit;
         missionManager.groundStation = groundStation;
         missionManager.connectionLine = connectionLine;
+        missionManager.Targets.Add(newYork);
+        missionManager.Targets.Add(london);
         missionManager.Targets.Add(seoul);
-        missionManager.Targets.Add(jeju);
-        missionManager.Targets.Add(pacific);
 
         cameraManager.targetCamera = camera;
         cameraManager.earth = earth.transform;
         cameraManager.satellite = sharedSatellite.transform;
-        cameraManager.missionTarget = seoul.transform;
+        cameraManager.missionTarget = newYork.transform;
         cameraManager.groundStation = groundStationObject.transform;
         cameraManager.SetOverview();
 
@@ -286,6 +289,27 @@ public class OrbitShareBootstrap : MonoBehaviour
         return satellite;
     }
 
+    private void CreateRelayConstellation(Transform parent, Material bodyMaterial, Material panelMaterial, GameObject importedPrefab, SimulationManager simulationManager)
+    {
+        for (int i = 4; i <= 24; i++)
+        {
+            float radius = i % 3 == 0 ? 6.3f : i % 3 == 1 ? 7.25f : 8.2f;
+            float inclination = i % 3 == 0 ? -32f : i % 3 == 1 ? 5f : 32f;
+            float angle = i * 360f / 21f;
+            Vector3 position = Quaternion.Euler(inclination, 0f, 0f) * new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad) * radius, 0f, Mathf.Sin(angle * Mathf.Deg2Rad) * radius);
+
+            GameObject satellite = CreateStaticSatellite("SAT-R" + i.ToString("00"), parent, bodyMaterial, panelMaterial, importedPrefab, position);
+            satellite.transform.localScale = Vector3.one * 0.64f;
+
+            EnterpriseSatelliteAnimator animator = satellite.AddComponent<EnterpriseSatelliteAnimator>();
+            animator.simulationManager = simulationManager;
+            animator.radius = radius;
+            animator.inclination = inclination;
+            animator.angle = angle;
+            animator.speed = 5.6f + (i % 3) * 0.8f;
+        }
+    }
+
     private GameObject CreateSpaceStation(string objectName, Transform parent, Material hullMaterial, Material accentMaterial, GameObject importedPrefab)
     {
         if (importedPrefab != null)
@@ -351,14 +375,24 @@ public class OrbitShareBootstrap : MonoBehaviour
         GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         marker.name = "Marker";
         marker.transform.SetParent(target.transform, false);
-        marker.transform.localScale = Vector3.one * 0.18f;
+        marker.transform.localScale = Vector3.one * 0.22f;
 
         ObservationTarget observationTarget = target.AddComponent<ObservationTarget>();
         observationTarget.Initialize(displayName, normalMaterial, selectedMaterial, dataMb, resolution, costCredits, priority, weatherRisk);
         PulseScale pulse = marker.AddComponent<PulseScale>();
         pulse.amplitude = 0.12f;
         pulse.speed = 2.6f;
-        AddWorldLabel(displayName, target.transform.position * 1.08f, 0.28f);
+        Vector3 labelPosition = target.transform.position * 1.12f;
+        if (displayName == "Seoul")
+        {
+            labelPosition += Vector3.down * 0.2f;
+        }
+        else if (displayName == "New York")
+        {
+            labelPosition += Vector3.up * 0.34f;
+        }
+        TextMesh label = AddWorldLabel("TO " + displayName, labelPosition, 0.36f);
+        observationTarget.SetLabel(label);
         return observationTarget;
     }
 
@@ -367,13 +401,13 @@ public class OrbitShareBootstrap : MonoBehaviour
         GameObject station = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         station.name = "GroundStation";
         station.transform.position = SurfacePosition(latitude, longitude, 3.25f);
-        station.transform.localScale = new Vector3(0.16f, 0.22f, 0.16f);
+        station.transform.localScale = new Vector3(0.2f, 0.26f, 0.2f);
         station.transform.up = station.transform.position.normalized;
         station.GetComponent<Renderer>().material = material;
         PulseScale pulse = station.AddComponent<PulseScale>();
         pulse.amplitude = 0.08f;
         pulse.speed = 2.2f;
-        AddWorldLabel("Ground", station.transform.position * 1.08f, 0.28f);
+        AddWorldLabel("FROM Seoul", station.transform.position * 1.13f + Vector3.up * 0.2f, 0.38f);
         return station;
     }
 
@@ -452,7 +486,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         }
     }
 
-    private void AddWorldLabel(string text, Vector3 position, float size)
+    private TextMesh AddWorldLabel(string text, Vector3 position, float size)
     {
         GameObject labelObject = new GameObject(text + " Label", typeof(TextMesh));
         labelObject.transform.position = position;
@@ -462,12 +496,14 @@ public class OrbitShareBootstrap : MonoBehaviour
         }
         TextMesh textMesh = labelObject.GetComponent<TextMesh>();
         textMesh.text = text;
-        textMesh.fontSize = 42;
-        textMesh.characterSize = size * 0.1f;
+        textMesh.fontSize = 54;
+        textMesh.characterSize = size * 0.115f;
+        textMesh.fontStyle = FontStyle.Bold;
         textMesh.anchor = TextAnchor.MiddleCenter;
         textMesh.alignment = TextAlignment.Center;
-        textMesh.color = Color.white;
+        textMesh.color = new Color(1f, 0.96f, 0.78f, 1f);
         labelObject.AddComponent<BillboardLabel>();
+        return textMesh;
     }
 
     private Vector3 SurfacePosition(float latitude, float longitude, float radius)

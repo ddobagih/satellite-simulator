@@ -4,6 +4,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 [InitializeOnLoad]
 public static class OrbitShareEditorAutomation
@@ -20,6 +21,7 @@ public static class OrbitShareEditorAutomation
     private const string FrameAgentStartedKey = "OrbitShare.FrameAgentStarted";
     private const string ValidationFlag = "OrbitShare.ValidateMissionFlow";
     private const string ValidationPathKey = "OrbitShare.ValidationPath";
+    private const string ValidationCompletedRunsKey = "OrbitShare.ValidationCompletedRuns";
     private static int validationErrorLogCount;
 
     static OrbitShareEditorAutomation()
@@ -72,6 +74,7 @@ public static class OrbitShareEditorAutomation
         SessionState.SetBool(FastDemoStartedKey, false);
         SessionState.SetFloat(StartTimeKey, 0f);
         SessionState.SetString(ValidationPathKey, path);
+        SessionState.SetInt(ValidationCompletedRunsKey, 0);
         validationErrorLogCount = 0;
 
         EditorSceneManager.OpenScene("Assets/Scenes/MainScene.unity");
@@ -127,7 +130,7 @@ public static class OrbitShareEditorAutomation
 
         if (SessionState.GetBool(ScreenshotRequestedKey, false))
         {
-            if (File.Exists(path) || elapsed > 8f)
+            if (File.Exists(path))
             {
                 SessionState.SetBool(CaptureFlag, false);
                 EditorApplication.isPlaying = false;
@@ -135,6 +138,16 @@ public static class OrbitShareEditorAutomation
                 {
                     Debug.Log("OrbitShare screenshot saved: " + path);
                     EditorApplication.Exit(0);
+                };
+            }
+            else if (elapsed > 8f)
+            {
+                SessionState.SetBool(CaptureFlag, false);
+                EditorApplication.isPlaying = false;
+                EditorApplication.delayCall += delegate
+                {
+                    Debug.LogError("OrbitShare screenshot was requested but no file was written: " + path);
+                    EditorApplication.Exit(1);
                 };
             }
             return;
@@ -145,8 +158,94 @@ public static class OrbitShareEditorAutomation
             return;
         }
 
-        ScreenCapture.CaptureScreenshot(path);
-        SessionState.SetBool(ScreenshotRequestedKey, true);
+        bool captured = TryCaptureCameraPng(path, 1600, 900);
+        SessionState.SetBool(CaptureFlag, false);
+        EditorApplication.isPlaying = false;
+        EditorApplication.delayCall += delegate
+        {
+            if (captured)
+            {
+                Debug.Log("OrbitShare screenshot saved: " + path);
+                EditorApplication.Exit(0);
+            }
+            else
+            {
+                Debug.LogError("OrbitShare screenshot was requested but no file was written: " + path);
+                EditorApplication.Exit(1);
+            }
+        };
+    }
+
+    private static bool TryCaptureCameraPng(string path, int width, int height)
+    {
+        Camera camera = Camera.main != null ? Camera.main : Object.FindObjectOfType<Camera>();
+        if (camera == null)
+        {
+            return false;
+        }
+
+        RenderTexture previousTarget = camera.targetTexture;
+        RenderTexture previousActive = RenderTexture.active;
+        RenderTexture renderTexture = null;
+        Texture2D texture = null;
+        Canvas[] canvases = Object.FindObjectsOfType<Canvas>();
+        RenderMode[] canvasModes = new RenderMode[canvases.Length];
+        Camera[] canvasCameras = new Camera[canvases.Length];
+        float[] canvasPlaneDistances = new float[canvases.Length];
+
+        try
+        {
+            for (int i = 0; i < canvases.Length; i++)
+            {
+                canvasModes[i] = canvases[i].renderMode;
+                canvasCameras[i] = canvases[i].worldCamera;
+                canvasPlaneDistances[i] = canvases[i].planeDistance;
+                if (canvases[i].renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    canvases[i].renderMode = RenderMode.ScreenSpaceCamera;
+                    canvases[i].worldCamera = camera;
+                    canvases[i].planeDistance = 1f;
+                }
+            }
+
+            renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+            texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+            camera.targetTexture = renderTexture;
+            RenderTexture.active = renderTexture;
+            camera.Render();
+            texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            texture.Apply();
+            File.WriteAllBytes(path, texture.EncodeToPNG());
+            return File.Exists(path);
+        }
+        catch (System.Exception exception)
+        {
+            Debug.LogError("OrbitShare camera screenshot failed: " + exception.Message);
+            return false;
+        }
+        finally
+        {
+            for (int i = 0; i < canvases.Length; i++)
+            {
+                if (canvases[i] != null)
+                {
+                    canvases[i].renderMode = canvasModes[i];
+                    canvases[i].worldCamera = canvasCameras[i];
+                    canvases[i].planeDistance = canvasPlaneDistances[i];
+                }
+            }
+
+            camera.targetTexture = previousTarget;
+            RenderTexture.active = previousActive;
+            if (renderTexture != null)
+            {
+                Object.DestroyImmediate(renderTexture);
+            }
+            if (texture != null)
+            {
+                Object.DestroyImmediate(texture);
+            }
+        }
     }
 
     private static void UpdateFrameCapture()
@@ -196,13 +295,25 @@ public static class OrbitShareEditorAutomation
 
         float elapsed = (float)EditorApplication.timeSinceStartup - SessionState.GetFloat(StartTimeKey, 0f);
         MissionManager missionManager = Object.FindObjectOfType<MissionManager>();
+        int completedRuns = SessionState.GetInt(ValidationCompletedRunsKey, 0);
         if (elapsed > 1f && missionManager != null && missionManager.Phase != MissionPhase.Complete)
         {
             missionManager.RunFastDemo();
             SessionState.SetBool(FastDemoStartedKey, true);
         }
 
-        if (elapsed < 10f && (missionManager == null || missionManager.Phase != MissionPhase.Complete))
+        if (missionManager != null && missionManager.Phase == MissionPhase.Complete && completedRuns < 2)
+        {
+            completedRuns++;
+            SessionState.SetInt(ValidationCompletedRunsKey, completedRuns);
+            if (completedRuns == 1)
+            {
+                missionManager.ResetMission();
+                return;
+            }
+        }
+
+        if (elapsed < 20f && completedRuns < 2)
         {
             return;
         }
@@ -224,18 +335,22 @@ public static class OrbitShareEditorAutomation
         SatelliteManager satelliteManager = Object.FindObjectOfType<SatelliteManager>();
         CameraManager cameraManager = Object.FindObjectOfType<CameraManager>();
         ImmediateUIManager immediateUIManager = Object.FindObjectOfType<ImmediateUIManager>();
+        PresentationDirector presentationDirector = Object.FindObjectOfType<PresentationDirector>();
         ObservationTarget[] targets = Object.FindObjectsOfType<ObservationTarget>();
         SatelliteOrbit orbit = Object.FindObjectOfType<SatelliteOrbit>();
         GroundStation groundStation = Object.FindObjectOfType<GroundStation>();
+        int completedRuns = SessionState.GetInt(ValidationCompletedRunsKey, 0);
 
         SatelliteData personalSatellite = FindSatellite(satelliteManager, "SAT-P01");
         SatelliteData companySatellite = FindSatellite(satelliteManager, "SAT-C01");
         SatelliteData sharedSatellite = FindSatellite(satelliteManager, "SAT-S01");
         ObservationTarget seoulTarget = FindTarget(targets, "Seoul");
-        ObservationTarget jejuTarget = FindTarget(targets, "Jeju");
-        ObservationTarget pacificTarget = FindTarget(targets, "Pacific");
+        ObservationTarget newYorkTarget = FindTarget(targets, "New York");
+        ObservationTarget londonTarget = FindTarget(targets, "London");
+        int satelliteVisualCount = CountSatelliteVisuals();
+        bool relayNodeNamesPresent = RelayNodeNamesPresent();
 
-        bool hasManagers = missionManager != null && satelliteManager != null && cameraManager != null && immediateUIManager != null;
+        bool hasManagers = missionManager != null && satelliteManager != null && cameraManager != null && immediateUIManager != null && presentationDirector != null;
         bool hasSceneObjects = orbit != null && targets.Length >= 3 && groundStation != null;
         bool bootstrapReferencesConnected = missionManager != null
             && missionManager.satelliteManager != null
@@ -258,10 +373,22 @@ public static class OrbitShareEditorAutomation
             && orbit != null
             && orbit.earth != null
             && orbit.simulationManager != null;
+        bool runtimeCanvasReferenceValid = RuntimeCanvasReferenceValid();
+        bool fallbackOverlayDisabled = immediateUIManager != null && !immediateUIManager.showFallbackOverlay;
         bool missionComplete = missionManager != null && missionManager.Phase == MissionPhase.Complete;
         bool observationComplete = missionManager != null && missionManager.ObservationProgress >= 0.99f;
         bool transferComplete = missionManager != null && missionManager.TransferProgress >= 0.99f;
+        bool resetReplayComplete = completedRuns >= 2 && missionComplete && observationComplete && transferComplete;
+        bool presentationCameraCutsValid = presentationDirector != null
+            && presentationDirector.HasHandledPhase(MissionPhase.Reserved)
+            && presentationDirector.HasHandledPhase(MissionPhase.Running)
+            && (presentationDirector.HasHandledPhase(MissionPhase.Observing) || presentationDirector.HasHandledPhase(MissionPhase.ObservationComplete))
+            && presentationDirector.HasHandledPhase(MissionPhase.Transmitting)
+            && presentationDirector.HasHandledPhase(MissionPhase.Complete)
+            && cameraManager != null
+            && cameraManager.CurrentMode == "Overview";
         bool hasFleet = satelliteManager != null && satelliteManager.Satellites.Count >= 3;
+        bool hasRelayConstellation = satelliteVisualCount == 24 && relayNodeNamesPresent;
         bool satelliteCoreDataValid = personalSatellite != null
             && companySatellite != null
             && sharedSatellite != null
@@ -269,13 +396,23 @@ public static class OrbitShareEditorAutomation
             && sharedSatellite.availabilityState == SatelliteAvailabilityState.MissionComplete
             && Mathf.Approximately(sharedSatellite.dataStoragePercent, 0f);
         bool targetCoreDataValid = seoulTarget != null
-            && jejuTarget != null
-            && pacificTarget != null
+            && newYorkTarget != null
+            && londonTarget != null
             && IsTargetDataPositive(seoulTarget)
-            && IsTargetDataPositive(jejuTarget)
-            && IsTargetDataPositive(pacificTarget)
+            && IsTargetDataPositive(newYorkTarget)
+            && IsTargetDataPositive(londonTarget)
             && missionManager != null
             && missionManager.SelectedTarget != null;
+        bool defaultDestinationValid = missionManager != null
+            && missionManager.SelectedTarget != null
+            && missionManager.SelectedTarget.targetName == "New York";
+        bool seoulSenderValid = groundStation != null
+            && groundStation.stationName == "Seoul Gateway"
+            && missionManager != null
+            && missionManager.CompletionSummary.Contains("Seoul →");
+        bool relaySummaryValid = missionManager != null
+            && missionManager.ResultMessage.Contains("Relay complete")
+            && missionManager.CompletionSummary.Contains("Delivered");
         bool missionMetricsReady = missionManager != null && missionManager.MissionQualityScore > 0 && missionManager.ServiceReliabilityScore > 0;
         bool scoreRangeValid = missionManager != null
             && IsScoreInRange(missionManager.MissionQualityScore)
@@ -284,12 +421,20 @@ public static class OrbitShareEditorAutomation
         bool passed = hasManagers
             && hasSceneObjects
             && bootstrapReferencesConnected
+            && runtimeCanvasReferenceValid
+            && fallbackOverlayDisabled
             && missionComplete
             && observationComplete
             && transferComplete
+            && resetReplayComplete
+            && presentationCameraCutsValid
             && hasFleet
+            && hasRelayConstellation
             && satelliteCoreDataValid
             && targetCoreDataValid
+            && defaultDestinationValid
+            && seoulSenderValid
+            && relaySummaryValid
             && missionMetricsReady
             && scoreRangeValid
             && runtimeLogsClean;
@@ -305,29 +450,40 @@ public static class OrbitShareEditorAutomation
         report.AppendLine("- Managers present: " + Status(hasManagers));
         report.AppendLine("- Scene objects present: " + Status(hasSceneObjects));
         report.AppendLine("- Bootstrap references connected: " + Status(bootstrapReferencesConnected));
+        report.AppendLine("- Runtime Canvas reference resolution 1600x900: " + Status(runtimeCanvasReferenceValid));
+        report.AppendLine("- IMGUI fallback overlay disabled by default: " + Status(fallbackOverlayDisabled));
         report.AppendLine("- Fleet initialized: " + Status(hasFleet));
+        report.AppendLine("- Relay constellation has exactly 24 visible satellites: " + Status(hasRelayConstellation) + " (" + satelliteVisualCount + ")");
         report.AppendLine("- Satellite core data valid: " + Status(satelliteCoreDataValid));
         report.AppendLine("- Target core data valid: " + Status(targetCoreDataValid));
+        report.AppendLine("- Default destination is New York: " + Status(defaultDestinationValid));
+        report.AppendLine("- Seoul sender gateway valid: " + Status(seoulSenderValid));
+        report.AppendLine("- Relay summary terminology valid: " + Status(relaySummaryValid));
         report.AppendLine("- Fast demo reaches mission complete: " + Status(missionComplete));
-        report.AppendLine("- Observation reaches 100%: " + Status(observationComplete));
-        report.AppendLine("- Transfer reaches 100%: " + Status(transferComplete));
+        report.AppendLine("- Relay lock reaches 100%: " + Status(observationComplete));
+        report.AppendLine("- Delivery reaches 100%: " + Status(transferComplete));
+        report.AppendLine("- Reset replay reaches second mission complete: " + Status(resetReplayComplete) + " (" + completedRuns + " runs)");
+        report.AppendLine("- PresentationDirector camera cuts valid: " + Status(presentationCameraCutsValid));
         report.AppendLine("- Mission metrics calculated: " + Status(missionMetricsReady));
         report.AppendLine("- Score range 0-100: " + Status(scoreRangeValid));
         report.AppendLine("- Runtime Error/Exception logs: " + Status(runtimeLogsClean) + " (" + validationErrorLogCount + ")");
         report.AppendLine();
         report.AppendLine("## Runtime State");
         report.AppendLine("- Mission phase: " + (missionManager != null ? missionManager.Phase.ToString() : "Missing"));
-        report.AppendLine("- Target: " + (missionManager != null && missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "None"));
-        report.AppendLine("- Observation progress: " + (missionManager != null ? Mathf.RoundToInt(missionManager.ObservationProgress * 100f).ToString() : "0") + "%");
-        report.AppendLine("- Transfer progress: " + (missionManager != null ? Mathf.RoundToInt(missionManager.TransferProgress * 100f).ToString() : "0") + "%");
+        report.AppendLine("- Sender: Seoul");
+        report.AppendLine("- Destination: " + (missionManager != null && missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "None"));
+        report.AppendLine("- Relay lock progress: " + (missionManager != null ? Mathf.RoundToInt(missionManager.ObservationProgress * 100f).ToString() : "0") + "%");
+        report.AppendLine("- Delivery progress: " + (missionManager != null ? Mathf.RoundToInt(missionManager.TransferProgress * 100f).ToString() : "0") + "%");
         report.AppendLine("- Communication available: " + (missionManager != null && missionManager.CommunicationAvailable));
+        report.AppendLine("- Completed fast demo runs: " + completedRuns);
+        report.AppendLine("- Camera mode at completion: " + (cameraManager != null ? cameraManager.CurrentMode : "Missing"));
         report.AppendLine("- Mission quality score: " + (missionManager != null ? missionManager.MissionQualityScore.ToString() : "0"));
         report.AppendLine("- Service reliability score: " + (missionManager != null ? missionManager.ServiceReliabilityScore.ToString() : "0"));
         report.AppendLine("- Satellite count: " + (satelliteManager != null ? satelliteManager.Satellites.Count.ToString() : "0"));
         report.AppendLine("- SAT-S01 state: " + (sharedSatellite != null ? sharedSatellite.availabilityState.ToString() : "Missing"));
         report.AppendLine("- SAT-S01 storage: " + (sharedSatellite != null ? sharedSatellite.dataStoragePercent.ToString("0.##") : "Missing"));
         report.AppendLine("- Target count: " + targets.Length);
-        report.AppendLine("- Targets present: Seoul=" + (seoulTarget != null) + ", Jeju=" + (jejuTarget != null) + ", Pacific=" + (pacificTarget != null));
+        report.AppendLine("- Destinations present: Seoul=" + (seoulTarget != null) + ", New York=" + (newYorkTarget != null) + ", London=" + (londonTarget != null));
         report.AppendLine();
         report.AppendLine("## Notes");
         report.AppendLine("- Unity editor token, REST port, curl, and update-check warnings are environment noise unless accompanied by runtime exceptions.");
@@ -375,6 +531,53 @@ public static class OrbitShareEditorAutomation
     private static bool IsScoreInRange(int score)
     {
         return score >= 0 && score <= 100;
+    }
+
+    private static bool RuntimeCanvasReferenceValid()
+    {
+        CanvasScaler scaler = Object.FindObjectOfType<CanvasScaler>();
+        return scaler != null
+            && scaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize
+            && Mathf.Approximately(scaler.referenceResolution.x, 1600f)
+            && Mathf.Approximately(scaler.referenceResolution.y, 900f);
+    }
+
+    private static int CountSatelliteVisuals()
+    {
+        GameObject satellitesRoot = GameObject.Find("Satellites");
+        if (satellitesRoot == null)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        foreach (Transform child in satellitesRoot.transform)
+        {
+            if (child.name.StartsWith("SAT-"))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static bool RelayNodeNamesPresent()
+    {
+        if (GameObject.Find("SAT-P01") == null || GameObject.Find("SAT-C01") == null || GameObject.Find("SAT-S01") == null)
+        {
+            return false;
+        }
+
+        for (int i = 4; i <= 24; i++)
+        {
+            if (GameObject.Find("SAT-R" + i.ToString("00")) == null)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

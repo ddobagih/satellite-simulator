@@ -14,6 +14,8 @@ public class ObservationTarget : MonoBehaviour
     private Vector3 baseScale;
     private Material defaultMaterial;
     private Material selectedMaterial;
+    private TextMesh labelText;
+    private float labelBaseSize;
 
     public void Initialize(string displayName, Material normal, Material selected, float dataMb, float resolution, int costCredits, string priority, float weatherRisk)
     {
@@ -30,6 +32,16 @@ public class ObservationTarget : MonoBehaviour
         SetSelected(false);
     }
 
+    public void SetLabel(TextMesh label)
+    {
+        labelText = label;
+        if (labelText != null)
+        {
+            labelBaseSize = labelText.characterSize;
+            SetSelected(false);
+        }
+    }
+
     public void SetSelected(bool selected)
     {
         if (markerRenderer != null)
@@ -38,5 +50,10 @@ public class ObservationTarget : MonoBehaviour
         }
 
         transform.localScale = selected ? baseScale * 1.45f : baseScale;
+        if (labelText != null)
+        {
+            labelText.characterSize = selected ? labelBaseSize * 1.18f : labelBaseSize * 0.72f;
+            labelText.color = selected ? new Color(1f, 0.96f, 0.62f, 1f) : new Color(0.86f, 0.92f, 1f, 0.38f);
+        }
     }
 }

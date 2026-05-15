@@ -1,8 +1,19 @@
 # Asset Store Upgrade Guide
 
-This project currently runs without imported Asset Store packages. Unity Asset Store downloads require the user's Unity account and license entitlement, so packages must be downloaded through Unity Editor/Package Manager first.
+This project currently runs with two imported runtime resources and procedural fallbacks for everything else. Unity Asset Store downloads require the user's Unity account and license entitlement, so any additional packages must be downloaded through Unity Editor/Package Manager first.
 
 Once `.unitypackage` files are available, OrbitShare can import and validate them automatically.
+
+## Currently Included Runtime Assets
+
+- `Assets/Resources/OrbitShare/SpaceSkybox.mat`
+  - Used as the runtime space skybox when present.
+  - If missing, OrbitShare falls back to a procedural starfield.
+- `Assets/Resources/OrbitShare/SpaceStation.prefab`
+  - Used as the OrbitShare Station model when present.
+  - If missing, OrbitShare falls back to a procedural station.
+
+The remaining runtime hooks are optional and currently use fallback visuals or generated tones.
 
 ## Verified Candidate Assets
 
@@ -20,6 +31,8 @@ Once `.unitypackage` files are available, OrbitShare can import and validate the
   - Paid, latest version 2.0, file size 33.2 MB
 - Sci-fi environment props: `Sci Fi Base Assets - free demo pack`
   - https://assetstore.unity.com/packages/3d/environments/sci-fi/sci-fi-base-assets-free-demo-pack-131284
+- Space station: `Space Station Free 3D Asset HDRP URP Built-In`
+  - Already represented in the current runtime hook as `SpaceStation.prefab`
 - UI/SFX fallback: `RPG Essentials Sound Effects - FREE!`
   - https://assetstore.unity.com/packages/audio/sound-fx/rpg-essentials-sound-effects-free-227708
 
@@ -62,12 +75,12 @@ Automatic resource names:
 
 If these files exist, OrbitShare loads them automatically at runtime. If they are missing, it falls back to procedural visuals and generated tones.
 
-Recommended replacements:
+Current hook behavior:
 
-- Replace `CreateSatelliteVisual` with an imported satellite prefab instance.
-- Add `Space Station Free 3D Asset` as `SpaceStation.prefab` to replace the procedural OrbitShare Station.
-- Replace `CreateEarthTexture` and procedural Earth material with the imported Earth material.
-- Assign imported skybox material to `RenderSettings.skybox`.
-- Replace generated tones in `AudioFeedbackManager` with imported UI/Sci-fi SFX clips.
+- `SatelliteModel.prefab`: replaces the procedural satellite visual when present.
+- `SpaceStation.prefab`: replaces the procedural OrbitShare Station when present.
+- `PremiumEarthMaterial.mat`: replaces the procedural Earth material when present.
+- `SpaceSkybox.mat`: replaces the procedural starfield when present.
+- `SFX_*.wav`: replaces generated UI tones when present.
 
-The current implementation is kept procedural so the project remains portable and does not break when Asset Store packages are missing.
+No code change is required if the assets are placed with the names above. The implementation keeps procedural fallbacks so the project remains portable and does not break when optional Asset Store packages are missing.
