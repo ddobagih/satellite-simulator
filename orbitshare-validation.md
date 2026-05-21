@@ -1,13 +1,15 @@
 # OrbitShare Automated Validation
 
 Result: PASS
-Elapsed seconds: 1.58
+Elapsed seconds: 2.23
 Screen: 640x480
 
 ## Checks
 - Managers present: PASS
 - Scene objects present: PASS
 - Bootstrap references connected: PASS
+- Runtime Canvas reference resolution 1600x900: PASS
+- IMGUI fallback overlay disabled by default: PASS
 - Fleet initialized: PASS
 - Relay constellation has exactly 24 visible satellites: PASS (24)
 - Satellite core data valid: PASS
@@ -18,6 +20,8 @@ Screen: 640x480
 - Fast demo reaches mission complete: PASS
 - Relay lock reaches 100%: PASS
 - Delivery reaches 100%: PASS
+- Reset replay reaches second mission complete: PASS (2 runs)
+- PresentationDirector camera cuts valid: PASS
 - Mission metrics calculated: PASS
 - Score range 0-100: PASS
 - Runtime Error/Exception logs: PASS (0)
@@ -29,9 +33,11 @@ Screen: 640x480
 - Relay lock progress: 100%
 - Delivery progress: 100%
 - Communication available: True
+- Completed fast demo runs: 2
+- Camera mode at completion: Overview
 - Mission quality score: 71
 - Service reliability score: 91
-- Satellite count: 3
+- Satellite count: 24
 - SAT-S01 state: MissionComplete
 - SAT-S01 storage: 0
 - Target count: 3

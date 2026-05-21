@@ -5,6 +5,13 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    private enum ButtonVisual
+    {
+        Primary,
+        Secondary,
+        Disabled
+    }
+
     private SimulationManager simulationManager;
     private SatelliteManager satelliteManager;
     private MissionManager missionManager;
@@ -12,7 +19,9 @@ public class UIManager : MonoBehaviour
     private Font uiFont;
 
     private RectTransform satelliteListContent;
+    private Text satelliteListSummaryText;
     private Text detailText;
+    private Text missionHeadlineText;
     private Text missionStatusText;
     private Text titleText;
     private Dropdown targetDropdown;
@@ -20,7 +29,12 @@ public class UIManager : MonoBehaviour
     private Button startMissionButton;
     private Button resetButton;
     private Button fastDemoButton;
+    private Image messageInputBox;
     private Text reservationHintText;
+    private Image transferSummaryBox;
+    private Text transferSummaryText;
+    private RectTransform timeControlPanel;
+    private RectTransform messageSizePanel;
     private Image observationFill;
     private Image transferFill;
     private RectTransform resultPanel;
@@ -31,6 +45,7 @@ public class UIManager : MonoBehaviour
     private readonly List<Text> timelineLabels = new List<Text>();
 
     private readonly Dictionary<string, Button> satelliteButtons = new Dictionary<string, Button>();
+    private SatelliteListFilter satelliteFilter = SatelliteListFilter.All;
     private bool eventsAttached;
 
     public void BuildUI(
@@ -81,7 +96,7 @@ public class UIManager : MonoBehaviour
 
         if (missionManager != null)
         {
-            missionManager.OnMissionChanged += RefreshMissionPanel;
+            missionManager.OnMissionChanged += RefreshAll;
         }
 
         if (simulationManager != null)
@@ -107,7 +122,7 @@ public class UIManager : MonoBehaviour
 
         if (missionManager != null)
         {
-            missionManager.OnMissionChanged -= RefreshMissionPanel;
+            missionManager.OnMissionChanged -= RefreshAll;
         }
 
         if (simulationManager != null)
@@ -138,57 +153,88 @@ public class UIManager : MonoBehaviour
 
     private void CreateTopPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "TopBar", new Vector2(0f, 0.91f), new Vector2(1f, 1f), new Color(0.02f, 0.05f, 0.09f, 0.72f));
-        titleText = CreateText(panel, "OrbitShare Relay Twin", 30, TextAnchor.MiddleLeft);
+        RectTransform panel = CreatePanel(parent, "TopBar", new Vector2(0f, 0.91f), new Vector2(1f, 1f), new Color(0.02f, 0.05f, 0.09f, 0.82f));
+        titleText = CreateText(panel, "OrbitShare 단문 위성 발신", 30, TextAnchor.MiddleLeft);
         titleText.rectTransform.offsetMin = new Vector2(24f, 0f);
         titleText.rectTransform.offsetMax = new Vector2(-24f, 0f);
     }
 
     private void CreateSatelliteListPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "SatelliteListPanel", new Vector2(0.015f, 0.47f), new Vector2(0.31f, 0.89f), new Color(0.04f, 0.07f, 0.11f, 0.66f));
-        Text heading = CreateText(panel, "Relay Control", 23, TextAnchor.UpperLeft);
+        RectTransform panel = CreatePanel(parent, "SatelliteListPanel", new Vector2(0.015f, 0.47f), new Vector2(0.31f, 0.89f), new Color(0.035f, 0.06f, 0.095f, 0.9f));
+        Text heading = CreateText(panel, "사용 가능한 위성 선택", 23, TextAnchor.UpperLeft);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
-        heading.rectTransform.anchoredPosition = new Vector2(0f, -18f);
-        heading.rectTransform.sizeDelta = new Vector2(-28f, 36f);
+        heading.rectTransform.anchoredPosition = new Vector2(0f, -16f);
+        heading.rectTransform.sizeDelta = new Vector2(-28f, 32f);
 
-        GameObject content = new GameObject("ListContent", typeof(RectTransform), typeof(VerticalLayoutGroup));
-        content.transform.SetParent(panel, false);
+        satelliteListSummaryText = CreateText(panel, "24개 후보 중 조건순 정렬", 13, TextAnchor.UpperLeft);
+        satelliteListSummaryText.color = new Color(0.78f, 0.88f, 1f, 0.78f);
+        satelliteListSummaryText.rectTransform.anchorMin = new Vector2(0f, 1f);
+        satelliteListSummaryText.rectTransform.anchorMax = new Vector2(1f, 1f);
+        satelliteListSummaryText.rectTransform.pivot = new Vector2(0.5f, 1f);
+        satelliteListSummaryText.rectTransform.anchoredPosition = new Vector2(0f, -50f);
+        satelliteListSummaryText.rectTransform.sizeDelta = new Vector2(-28f, 18f);
+
+        CreateFilterButton(panel, "전체", 0f, delegate { satelliteFilter = SatelliteListFilter.All; RefreshSatelliteList(); });
+        CreateFilterButton(panel, "가능", 0.25f, delegate { satelliteFilter = SatelliteListFilter.Available; RefreshSatelliteList(); });
+        CreateFilterButton(panel, "빠른창", 0.5f, delegate { satelliteFilter = SatelliteListFilter.Fast; RefreshSatelliteList(); });
+        CreateFilterButton(panel, "저가", 0.75f, delegate { satelliteFilter = SatelliteListFilter.LowCost; RefreshSatelliteList(); });
+
+        GameObject viewport = new GameObject("SatelliteListViewport", typeof(RectTransform), typeof(Image), typeof(Mask), typeof(ScrollRect));
+        viewport.transform.SetParent(panel, false);
+        RectTransform viewportRect = viewport.GetComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = new Vector2(14f, 14f);
+        viewportRect.offsetMax = new Vector2(-14f, -114f);
+        viewport.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.03f);
+        viewport.GetComponent<Mask>().showMaskGraphic = false;
+
+        GameObject content = new GameObject("ListContent", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        content.transform.SetParent(viewport.transform, false);
         satelliteListContent = content.GetComponent<RectTransform>();
-        satelliteListContent.anchorMin = new Vector2(0f, 0f);
+        satelliteListContent.anchorMin = new Vector2(0f, 1f);
         satelliteListContent.anchorMax = new Vector2(1f, 1f);
-        satelliteListContent.offsetMin = new Vector2(14f, 14f);
-        satelliteListContent.offsetMax = new Vector2(-14f, -62f);
+        satelliteListContent.pivot = new Vector2(0.5f, 1f);
+        satelliteListContent.anchoredPosition = Vector2.zero;
+        satelliteListContent.sizeDelta = Vector2.zero;
 
         VerticalLayoutGroup layout = content.GetComponent<VerticalLayoutGroup>();
-        layout.spacing = 10f;
+        layout.spacing = 7f;
         layout.childControlHeight = true;
         layout.childControlWidth = true;
         layout.childForceExpandHeight = false;
+        ContentSizeFitter fitter = content.GetComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        ScrollRect scrollRect = viewport.GetComponent<ScrollRect>();
+        scrollRect.content = satelliteListContent;
+        scrollRect.viewport = viewportRect;
+        scrollRect.horizontal = false;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
     }
 
     private void CreateDetailPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "SatelliteDetailPanel", new Vector2(0.69f, 0.47f), new Vector2(0.985f, 0.89f), new Color(0.04f, 0.07f, 0.11f, 0.66f));
-        Text heading = CreateText(panel, "Relay Details", 23, TextAnchor.UpperLeft);
+        RectTransform panel = CreatePanel(parent, "SatelliteDetailPanel", new Vector2(0.69f, 0.47f), new Vector2(0.985f, 0.89f), new Color(0.035f, 0.06f, 0.095f, 0.9f));
+        Text heading = CreateText(panel, "선택 위성 정보", 23, TextAnchor.UpperLeft);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
         heading.rectTransform.anchoredPosition = new Vector2(0f, -18f);
         heading.rectTransform.sizeDelta = new Vector2(-28f, 36f);
 
-        detailText = CreateText(panel, string.Empty, 19, TextAnchor.UpperLeft);
-        detailText.lineSpacing = 1.08f;
+        detailText = CreateText(panel, string.Empty, 18, TextAnchor.UpperLeft);
+        detailText.lineSpacing = 1.12f;
         detailText.rectTransform.offsetMin = new Vector2(18f, 18f);
         detailText.rectTransform.offsetMax = new Vector2(-18f, -64f);
     }
 
     private void CreateReservationPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "MissionReservationPanel", new Vector2(0.69f, 0.16f), new Vector2(0.985f, 0.45f), new Color(0.04f, 0.07f, 0.11f, 0.66f));
-        Text heading = CreateText(panel, "Relay Request", 23, TextAnchor.UpperLeft);
+        RectTransform panel = CreatePanel(parent, "MissionReservationPanel", new Vector2(0.69f, 0.16f), new Vector2(0.985f, 0.45f), new Color(0.035f, 0.06f, 0.095f, 0.9f));
+        Text heading = CreateText(panel, "단문 메시지 발신", 23, TextAnchor.UpperLeft);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -208,79 +254,119 @@ public class UIManager : MonoBehaviour
             }
         });
 
-        reserveButton = CreateButton(panel, "Queue", new Vector2(0f, 0f), new Vector2(0.32f, 0f), new Vector2(18f, 18f), new Vector2(-6f, 64f), delegate { missionManager.ReserveMission(); });
-        startMissionButton = CreateButton(panel, "Relay", new Vector2(0.34f, 0f), new Vector2(0.66f, 0f), new Vector2(0f, 18f), new Vector2(0f, 64f), delegate { missionManager.StartMission(); });
-        resetButton = CreateButton(panel, "Reset", new Vector2(0.68f, 0f), new Vector2(1f, 0f), new Vector2(6f, 18f), new Vector2(-18f, 64f), delegate { missionManager.ResetMission(); });
-        fastDemoButton = CreateButton(panel, "Quick Relay", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 78f), new Vector2(-18f, 118f), delegate { missionManager.RunFastDemo(); });
+        reserveButton = CreateButton(panel, "위성 확정", new Vector2(0f, 0f), new Vector2(0.32f, 0f), new Vector2(18f, 18f), new Vector2(-6f, 64f), delegate { missionManager.ReserveMission(); });
+        startMissionButton = CreateButton(panel, "메시지 발신", new Vector2(0.34f, 0f), new Vector2(0.66f, 0f), new Vector2(0f, 18f), new Vector2(0f, 64f), delegate { missionManager.StartMission(); });
+        resetButton = CreateButton(panel, "초기화", new Vector2(0.68f, 0f), new Vector2(1f, 0f), new Vector2(6f, 18f), new Vector2(-18f, 64f), delegate { missionManager.ResetMission(); });
+        fastDemoButton = CreateButton(panel, "추천 위성으로 바로 발신", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 78f), new Vector2(-18f, 118f), delegate { missionManager.RunFastDemo(); });
 
-        reservationHintText = CreateText(panel, string.Empty, 15, TextAnchor.UpperLeft);
+        GameObject messageBoxObject = new GameObject("MessageSampleBox", typeof(RectTransform), typeof(Image));
+        messageBoxObject.transform.SetParent(panel, false);
+        RectTransform messageBoxRect = messageBoxObject.GetComponent<RectTransform>();
+        messageBoxRect.anchorMin = new Vector2(0f, 0f);
+        messageBoxRect.anchorMax = new Vector2(1f, 0f);
+        messageBoxRect.offsetMin = new Vector2(18f, 122f);
+        messageBoxRect.offsetMax = new Vector2(-18f, 154f);
+        messageInputBox = messageBoxObject.GetComponent<Image>();
+        messageInputBox.color = new Color(0.08f, 0.11f, 0.16f, 0.98f);
+
+        reservationHintText = CreateText(panel, string.Empty, 14, TextAnchor.MiddleLeft);
         reservationHintText.rectTransform.anchorMin = new Vector2(0f, 0f);
         reservationHintText.rectTransform.anchorMax = new Vector2(1f, 0f);
-        reservationHintText.rectTransform.offsetMin = new Vector2(18f, 122f);
-        reservationHintText.rectTransform.offsetMax = new Vector2(-18f, 150f);
+        reservationHintText.rectTransform.offsetMin = new Vector2(30f, 122f);
+        reservationHintText.rectTransform.offsetMax = new Vector2(-30f, 154f);
+        reservationHintText.color = new Color(0.9f, 0.96f, 1f, 0.92f);
+
+        GameObject summaryBoxObject = new GameObject("TransferSummaryBox", typeof(RectTransform), typeof(Image));
+        summaryBoxObject.transform.SetParent(panel, false);
+        RectTransform summaryBoxRect = summaryBoxObject.GetComponent<RectTransform>();
+        summaryBoxRect.anchorMin = new Vector2(0f, 0f);
+        summaryBoxRect.anchorMax = new Vector2(1f, 0f);
+        summaryBoxRect.offsetMin = new Vector2(18f, 72f);
+        summaryBoxRect.offsetMax = new Vector2(-18f, 121f);
+        transferSummaryBox = summaryBoxObject.GetComponent<Image>();
+        transferSummaryBox.color = new Color(0.06f, 0.15f, 0.18f, 0.98f);
+        transferSummaryBox.gameObject.SetActive(false);
+
+        transferSummaryText = CreateText(panel, string.Empty, 12, TextAnchor.UpperLeft);
+        transferSummaryText.lineSpacing = 0.85f;
+        transferSummaryText.rectTransform.anchorMin = new Vector2(0f, 0f);
+        transferSummaryText.rectTransform.anchorMax = new Vector2(1f, 0f);
+        transferSummaryText.rectTransform.offsetMin = new Vector2(28f, 75f);
+        transferSummaryText.rectTransform.offsetMax = new Vector2(-28f, 120f);
+        transferSummaryText.color = new Color(0.88f, 0.96f, 1f, 0.95f);
+        transferSummaryText.gameObject.SetActive(false);
 
         PopulateTargetDropdown();
     }
 
     private void CreateTimeControlPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "TimeControlPanel", new Vector2(0.325f, 0.02f), new Vector2(0.515f, 0.14f), new Color(0.04f, 0.07f, 0.11f, 0.62f));
-        Text heading = CreateText(panel, "Time", 18, TextAnchor.UpperCenter);
+        RectTransform panel = CreatePanel(parent, "TimeControlPanel", new Vector2(0.325f, 0.02f), new Vector2(0.515f, 0.14f), new Color(0.035f, 0.06f, 0.095f, 0.88f));
+        timeControlPanel = panel;
+        Text heading = CreateText(panel, "발신 시각", 18, TextAnchor.UpperCenter);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
         heading.rectTransform.anchoredPosition = new Vector2(0f, -8f);
         heading.rectTransform.sizeDelta = new Vector2(-18f, 28f);
 
-        CreateButton(panel, "Pause", new Vector2(0f, 0f), new Vector2(0.25f, 0f), new Vector2(10f, 12f), new Vector2(-4f, 50f), delegate { simulationManager.SetTimeScale(0f); });
-        CreateButton(panel, "1x", new Vector2(0.25f, 0f), new Vector2(0.5f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { simulationManager.SetTimeScale(1f); });
-        CreateButton(panel, "5x", new Vector2(0.5f, 0f), new Vector2(0.75f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { simulationManager.SetTimeScale(5f); });
-        CreateButton(panel, "10x", new Vector2(0.75f, 0f), new Vector2(1f, 0f), new Vector2(4f, 12f), new Vector2(-10f, 50f), delegate { simulationManager.SetTimeScale(10f); });
+        CreateButton(panel, "지금", new Vector2(0f, 0f), new Vector2(0.25f, 0f), new Vector2(10f, 12f), new Vector2(-4f, 50f), delegate { missionManager.SetSendDelayMinutes(0); });
+        CreateButton(panel, "5분", new Vector2(0.25f, 0f), new Vector2(0.5f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { missionManager.SetSendDelayMinutes(5); });
+        CreateButton(panel, "15분", new Vector2(0.5f, 0f), new Vector2(0.75f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { missionManager.SetSendDelayMinutes(15); });
+        CreateButton(panel, "30분", new Vector2(0.75f, 0f), new Vector2(1f, 0f), new Vector2(4f, 12f), new Vector2(-10f, 50f), delegate { missionManager.SetSendDelayMinutes(30); });
     }
 
     private void CreateCameraControlPanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "CameraControlPanel", new Vector2(0.525f, 0.02f), new Vector2(0.675f, 0.14f), new Color(0.04f, 0.07f, 0.11f, 0.62f));
-        Text heading = CreateText(panel, "Camera", 18, TextAnchor.UpperCenter);
+        RectTransform panel = CreatePanel(parent, "CameraControlPanel", new Vector2(0.525f, 0.02f), new Vector2(0.675f, 0.14f), new Color(0.035f, 0.06f, 0.095f, 0.88f));
+        messageSizePanel = panel;
+        Text heading = CreateText(panel, "메시지 용량", 18, TextAnchor.UpperCenter);
         heading.rectTransform.anchorMin = new Vector2(0f, 1f);
         heading.rectTransform.anchorMax = new Vector2(1f, 1f);
         heading.rectTransform.pivot = new Vector2(0.5f, 1f);
         heading.rectTransform.anchoredPosition = new Vector2(0f, -8f);
         heading.rectTransform.sizeDelta = new Vector2(-18f, 28f);
 
-        CreateButton(panel, "View", new Vector2(0f, 0f), new Vector2(0.28f, 0f), new Vector2(10f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetOverview(); });
-        CreateButton(panel, "Earth", new Vector2(0.28f, 0f), new Vector2(0.48f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetEarth(); });
-        CreateButton(panel, "Sat", new Vector2(0.48f, 0f), new Vector2(0.74f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { cameraManager.SetSatellite(); });
-        CreateButton(panel, "Route", new Vector2(0.74f, 0f), new Vector2(1f, 0f), new Vector2(4f, 12f), new Vector2(-10f, 50f), delegate { cameraManager.SetMission(); });
+        CreateButton(panel, "32KB", new Vector2(0f, 0f), new Vector2(0.28f, 0f), new Vector2(10f, 12f), new Vector2(-4f, 50f), delegate { missionManager.SetMessageSizeKb(32); });
+        CreateButton(panel, "128KB", new Vector2(0.28f, 0f), new Vector2(0.58f, 0f), new Vector2(4f, 12f), new Vector2(-4f, 50f), delegate { missionManager.SetMessageSizeKb(128); });
+        CreateButton(panel, "512KB", new Vector2(0.58f, 0f), new Vector2(1f, 0f), new Vector2(4f, 12f), new Vector2(-10f, 50f), delegate { missionManager.SetMessageSizeKb(512); });
 
-        RectTransform statusPanel = CreatePanel(parent, "CommunicationStatusPanel", new Vector2(0.325f, 0.16f), new Vector2(0.675f, 0.31f), new Color(0.04f, 0.07f, 0.11f, 0.58f));
-        missionStatusText = CreateText(statusPanel, string.Empty, 16, TextAnchor.UpperLeft);
-        missionStatusText.rectTransform.offsetMin = new Vector2(18f, 62f);
-        missionStatusText.rectTransform.offsetMax = new Vector2(-18f, -14f);
+        RectTransform statusPanel = CreatePanel(parent, "CommunicationStatusPanel", new Vector2(0.325f, 0.16f), new Vector2(0.675f, 0.335f), new Color(0.035f, 0.06f, 0.095f, 0.9f));
+        missionHeadlineText = CreateText(statusPanel, string.Empty, 23, TextAnchor.UpperLeft);
+        missionHeadlineText.fontStyle = FontStyle.Bold;
+        missionHeadlineText.rectTransform.offsetMin = new Vector2(18f, 108f);
+        missionHeadlineText.rectTransform.offsetMax = new Vector2(-18f, -10f);
 
-        observationFill = CreateProgressBar(statusPanel, "RelayLockProgress", new Vector2(18f, 36f), new Color(1f, 0.68f, 0.12f, 0.95f));
-        transferFill = CreateProgressBar(statusPanel, "DeliveryProgress", new Vector2(18f, 14f), new Color(0.24f, 1f, 0.84f, 0.95f));
+        missionStatusText = CreateText(statusPanel, string.Empty, 14, TextAnchor.UpperLeft);
+        missionStatusText.rectTransform.offsetMin = new Vector2(18f, 52f);
+        missionStatusText.rectTransform.offsetMax = new Vector2(-18f, -44f);
+
+        CreateProgressLabel(statusPanel, "중계", new Vector2(18f, 36f));
+        CreateProgressLabel(statusPanel, "수신", new Vector2(18f, 14f));
+        observationFill = CreateProgressBar(statusPanel, "RelayLockProgress", new Vector2(74f, 36f), new Color(1f, 0.68f, 0.12f, 0.95f));
+        transferFill = CreateProgressBar(statusPanel, "DeliveryProgress", new Vector2(74f, 14f), new Color(0.24f, 1f, 0.84f, 0.95f));
     }
 
     private void CreateResultPanel(Transform parent)
     {
-        resultPanel = CreatePanel(parent, "CommunicationResultPanel", new Vector2(0.325f, 0.37f), new Vector2(0.555f, 0.51f), new Color(0.02f, 0.08f, 0.12f, 0.5f));
-        resultText = CreateText(resultPanel, string.Empty, 16, TextAnchor.UpperLeft);
-        resultText.rectTransform.anchorMin = new Vector2(0f, 0.42f);
-        resultText.rectTransform.anchorMax = new Vector2(1f, 1f);
+        resultPanel = CreatePanel(parent, "CommunicationResultPanel", new Vector2(0.345f, 0.39f), new Vector2(0.59f, 0.535f), new Color(0.02f, 0.08f, 0.12f, 0.9f));
+        resultText = CreateText(resultPanel, string.Empty, 20, TextAnchor.UpperLeft);
+        resultText.fontStyle = FontStyle.Bold;
+        resultText.rectTransform.anchorMin = new Vector2(0f, 0.48f);
+        resultText.rectTransform.anchorMax = new Vector2(0.62f, 1f);
         resultText.rectTransform.offsetMin = new Vector2(20f, 12f);
         resultText.rectTransform.offsetMax = new Vector2(-20f, -12f);
 
-        resultDataText = CreateText(resultPanel, string.Empty, 12, TextAnchor.UpperLeft);
+        resultDataText = CreateText(resultPanel, string.Empty, 14, TextAnchor.UpperLeft);
         resultDataText.rectTransform.anchorMin = new Vector2(0f, 0f);
-        resultDataText.rectTransform.anchorMax = new Vector2(1f, 0.42f);
-        resultDataText.rectTransform.offsetMin = new Vector2(20f, 16f);
+        resultDataText.rectTransform.anchorMax = new Vector2(0.62f, 0.48f);
+        resultDataText.rectTransform.offsetMin = new Vector2(20f, 12f);
         resultDataText.rectTransform.offsetMax = new Vector2(-20f, -4f);
 
         GameObject previewObject = new GameObject("SignalRoutePreview", typeof(RectTransform), typeof(RawImage));
         previewObject.transform.SetParent(resultPanel, false);
         RectTransform previewRect = previewObject.GetComponent<RectTransform>();
-        previewRect.anchorMin = new Vector2(0.62f, 0.12f);
+        previewRect.anchorMin = new Vector2(0.66f, 0.12f);
         previewRect.anchorMax = new Vector2(0.96f, 0.88f);
         previewRect.offsetMin = Vector2.zero;
         previewRect.offsetMax = Vector2.zero;
@@ -292,8 +378,8 @@ public class UIManager : MonoBehaviour
 
     private void CreateTimelinePanel(Transform parent)
     {
-        RectTransform panel = CreatePanel(parent, "CommunicationTimelinePanel", new Vector2(0.34f, 0.8f), new Vector2(0.66f, 0.87f), new Color(0.025f, 0.055f, 0.085f, 0.48f));
-        string[] labels = { "Queue", "Route", "Uplink", "Relay", "Downlink", "Done" };
+        RectTransform panel = CreatePanel(parent, "CommunicationTimelinePanel", new Vector2(0.34f, 0.8f), new Vector2(0.66f, 0.87f), new Color(0.025f, 0.055f, 0.085f, 0.82f));
+        string[] labels = { "요청", "경로", "상향", "중계", "하향", "완료" };
         timelineDots.Clear();
         timelineLabels.Clear();
 
@@ -342,14 +428,38 @@ public class UIManager : MonoBehaviour
         }
         satelliteButtons.Clear();
 
-        foreach (SatelliteData satellite in satelliteManager.Satellites)
+        string targetName = missionManager != null && missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "New York";
+        int sendDelay = missionManager != null ? missionManager.RequestedSendDelayMinutes : 0;
+        List<SatelliteData> visibleSatellites = satelliteManager.GetFilteredSatellites(satelliteFilter, targetName, sendDelay);
+        if (satelliteListSummaryText != null)
+        {
+            int totalCount = satelliteManager.Satellites.Count;
+            satelliteListSummaryText.text = satelliteFilter == SatelliteListFilter.All
+                ? totalCount + "개 후보 중 조건순 정렬"
+                : totalCount + "개 후보 중 " + visibleSatellites.Count + "개 표시 · 조건순 정렬";
+        }
+        foreach (SatelliteData satellite in visibleSatellites)
         {
             string satelliteName = satellite.satelliteName;
             Button button = CreateListButton(satelliteListContent, FormatSatelliteRow(satellite), delegate { satelliteManager.SelectSatellite(satelliteName); });
             ColorBlock colors = button.colors;
-            colors.normalColor = satellite == satelliteManager.SelectedSatellite ? new Color(0.12f, 0.38f, 0.68f, 0.96f) : new Color(0.1f, 0.14f, 0.2f, 0.96f);
-            colors.highlightedColor = new Color(0.16f, 0.44f, 0.74f, 1f);
+            bool canServe = satellite.CanServe(targetName, sendDelay);
+            bool selected = satellite == satelliteManager.SelectedSatellite;
+            colors.normalColor = selected
+                ? new Color(0.08f, 0.42f, 0.72f, 1f)
+                : canServe ? new Color(0.06f, 0.24f, 0.2f, 0.98f) : new Color(0.08f, 0.11f, 0.16f, 0.98f);
+            colors.highlightedColor = selected ? new Color(0.11f, 0.52f, 0.86f, 1f) : new Color(0.16f, 0.44f, 0.74f, 1f);
+            colors.pressedColor = new Color(0.06f, 0.24f, 0.38f, 1f);
             button.colors = colors;
+            Transform selectionBar = button.transform.Find("SelectionBar");
+            if (selectionBar != null)
+            {
+                Image bar = selectionBar.GetComponent<Image>();
+                if (bar != null)
+                {
+                    bar.color = selected ? new Color(0.24f, 1f, 0.84f, 1f) : new Color(0.24f, 1f, 0.84f, 0.08f);
+                }
+            }
             satelliteButtons[satelliteName] = button;
         }
     }
@@ -362,17 +472,22 @@ public class UIManager : MonoBehaviour
         }
 
         SatelliteData satellite = satelliteManager.SelectedSatellite;
+        string targetName = missionManager != null && missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "New York";
+        int messageSize = missionManager != null ? missionManager.MessageSizeKb : 128;
+        int price = satellite.EstimatePriceCredits(messageSize);
+        int success = missionManager != null ? missionManager.SuccessProbabilityPercent : satellite.reliabilityPercent;
+        string availability = satellite.CanServe(targetName, missionManager != null ? missionManager.RequestedSendDelayMinutes : 0) ? "발신 가능" : satellite.StateLabel;
+        int sendDelay = missionManager != null ? missionManager.RequestedSendDelayMinutes : 0;
         detailText.text =
-            "Name: " + satellite.satelliteName + "\n" +
-            "Type: " + satellite.OwnerTypeLabel + "\n" +
-            "Owner: " + satellite.ownerName + "\n" +
-            "State: " + satellite.StateLabel + "\n" +
-            "Use: " + satellite.usageType + "\n" +
-            "Altitude: " + satellite.altitudeKm.ToString("0") + " km\n" +
-            "Velocity: " + satellite.speedKmPerSec.ToString("0.0") + " km/s\n" +
-            "Battery: " + satellite.batteryPercent.ToString("0") + "%\n" +
-            "Buffer: " + satellite.dataStoragePercent.ToString("0") + "%\n" +
-            "Destination: " + satellite.currentMissionTarget;
+            satellite.satelliteName + "  |  " + satellite.OwnerTypeLabel + "\n" +
+            "상태: " + availability + "  ·  대상: " + DestinationLabel(targetName) + "\n" +
+            "예상 지연: " + satellite.latencySeconds + "초  |  요금: " + price + "cr\n" +
+            "성공 예측: " + success + "%  |  신뢰도: " + satellite.reliabilityPercent + "%\n" +
+            "다음 창: " + (satellite.nextWindowMinutes == 0 ? "지금" : satellite.nextWindowMinutes + "분 후") + "\n" +
+            "추천 이유: " + RecommendationReason(satellite, targetName, sendDelay) + "\n" +
+            "—\n" +
+            "궤도: " + satellite.orbitSlot + " / " + satellite.altitudeKm.ToString("0") + " km\n" +
+            "배터리: " + satellite.batteryPercent.ToString("0") + "%  |  버퍼: " + satellite.dataStoragePercent.ToString("0") + "%";
     }
 
     private void RefreshMissionPanel()
@@ -384,13 +499,30 @@ public class UIManager : MonoBehaviour
 
         if (titleText != null && simulationManager != null)
         {
-            titleText.text = "OrbitShare Relay Twin    |    " + simulationManager.TimeScale.ToString("0.#") + "x";
+            titleText.text = "OrbitShare 단문 위성 발신    |    " + HeaderStateLabel();
         }
 
+        if (missionHeadlineText != null)
+        {
+            missionHeadlineText.text = StatusHeadline();
+        }
+
+        bool isComplete = missionManager.Phase == MissionPhase.Complete;
+        if (timeControlPanel != null)
+        {
+            timeControlPanel.gameObject.SetActive(!isComplete);
+        }
+        if (messageSizePanel != null)
+        {
+            messageSizePanel.gameObject.SetActive(!isComplete);
+        }
+
+        string missionTargetName = missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "None";
         missionStatusText.text =
-            "Phase: " + MissionPhaseLabel(missionManager.Phase) + " | Link: " + (missionManager.CommunicationAvailable ? "Online" : "Offline") + "\n" +
-            "Seoul → " + (missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "None") + "\n" +
-            "Relay/Send: " + Mathf.RoundToInt(missionManager.ObservationProgress * 100f) + "% / " + Mathf.RoundToInt(missionManager.TransferProgress * 100f) + "%";
+            "목적지: " + DestinationLabel(missionTargetName) +
+            "  |  메시지: " + missionManager.MessageSizeKb + "KB 단문  |  요금: " + missionManager.EstimatedPriceCredits + "cr\n" +
+            "성공 예측: " + missionManager.SuccessProbabilityPercent + "%  |  링크: " + (missionManager.CommunicationAvailable ? "연결" : "대기") +
+            "  |  중계/수신: " + Mathf.RoundToInt(missionManager.ObservationProgress * 100f) + "% / " + Mathf.RoundToInt(missionManager.TransferProgress * 100f) + "%";
 
         if (observationFill != null)
         {
@@ -403,21 +535,27 @@ public class UIManager : MonoBehaviour
 
         if (resultPanel != null && resultText != null)
         {
-            bool showResult = missionManager.Phase == MissionPhase.Complete;
+            bool showResult = isComplete;
             resultPanel.gameObject.SetActive(showResult);
-            resultText.text = missionManager.CompletionSummary;
             if (showResult)
             {
                 string targetName = missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "Unknown";
-                ObservationTarget target = missionManager.SelectedTarget;
+                resultText.text = "수신 완료\n전달 성공";
                 resultDataText.text =
-                    "Request ID: OS-" + System.DateTime.Now.ToString("HHmm") + "\n" +
-                    "Payload: " + (target != null ? target.estimatedDataMb.ToString("0") : "128") + " MB | Delay: " + (target != null ? target.resolutionMeters.ToString("0.0") : "0.9") + " s | Score: " + missionManager.MissionQualityScore + "\n" +
-                    "Gateway: Seoul | Delivery: Complete";
+                    "OS-" + System.DateTime.Now.ToString("HHmm") + " · 서울→" + DestinationLabel(targetName) + "\n" +
+                    missionManager.MessageSizeKb + "KB · " + missionManager.EstimatedPriceCredits + "cr · 성공 " + missionManager.SuccessProbabilityPercent + "%";
                 if (previewImage.texture == null || previewImage.texture.name != targetName + " Preview")
                 {
                     previewImage.texture = CreatePreviewTexture(targetName);
                 }
+            }
+            else
+            {
+                resultText.text = string.Empty;
+            }
+            if (previewImage != null)
+            {
+                previewImage.gameObject.SetActive(showResult);
             }
         }
 
@@ -425,15 +563,35 @@ public class UIManager : MonoBehaviour
 
         if (reserveButton != null)
         {
-            reserveButton.interactable = satelliteManager != null && satelliteManager.CanReserveSelected() && missionManager.Phase == MissionPhase.Idle;
+            string targetName = missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "New York";
+            bool canReserve = satelliteManager != null && satelliteManager.CanReserveSelected(targetName, missionManager.RequestedSendDelayMinutes) && missionManager.Phase == MissionPhase.Idle;
+            reserveButton.gameObject.SetActive(!isComplete);
+            reserveButton.interactable = canReserve;
+            SetButtonLabel(reserveButton, missionManager.Phase == MissionPhase.Reserved || missionManager.Phase == MissionPhase.Complete ? "위성 확정됨" : "위성 확정");
+            SetButtonVisual(reserveButton, canReserve ? ButtonVisual.Secondary : ButtonVisual.Disabled);
+            SetButtonRect(reserveButton, new Vector2(0f, 0f), new Vector2(0.32f, 0f), new Vector2(18f, 18f), new Vector2(-6f, 64f));
         }
         if (startMissionButton != null)
         {
+            startMissionButton.gameObject.SetActive(!isComplete);
             startMissionButton.interactable = missionManager.Phase == MissionPhase.Reserved;
+            SetButtonLabel(startMissionButton, missionManager.Phase == MissionPhase.Idle ? "확정 후 발신" : missionManager.Phase == MissionPhase.Complete ? "발신 완료" : "메시지 발신");
+            SetButtonVisual(startMissionButton, missionManager.Phase == MissionPhase.Reserved ? ButtonVisual.Primary : ButtonVisual.Disabled);
+            SetButtonRect(startMissionButton, new Vector2(0.34f, 0f), new Vector2(0.66f, 0f), new Vector2(0f, 18f), new Vector2(0f, 64f));
         }
         if (resetButton != null)
         {
             resetButton.interactable = missionManager.Phase == MissionPhase.Complete || missionManager.Phase == MissionPhase.Reserved;
+            SetButtonLabel(resetButton, isComplete ? "새 메시지 보내기" : "초기화");
+            SetButtonVisual(resetButton, isComplete ? ButtonVisual.Primary : resetButton.interactable ? ButtonVisual.Secondary : ButtonVisual.Disabled);
+            if (isComplete)
+            {
+                SetButtonRect(resetButton, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 18f), new Vector2(-18f, 70f));
+            }
+            else
+            {
+                SetButtonRect(resetButton, new Vector2(0.68f, 0f), new Vector2(1f, 0f), new Vector2(6f, 18f), new Vector2(-18f, 64f));
+            }
         }
         if (targetDropdown != null)
         {
@@ -441,26 +599,38 @@ public class UIManager : MonoBehaviour
         }
         if (fastDemoButton != null)
         {
-            fastDemoButton.interactable = missionManager.Phase != MissionPhase.Complete;
+            fastDemoButton.gameObject.SetActive(!isComplete);
+            fastDemoButton.interactable = !isComplete;
+            SetButtonLabel(fastDemoButton, missionManager.Phase == MissionPhase.Idle ? "추천 위성으로 바로 발신" : isComplete ? "발신 완료" : "자동 발신 진행 중");
+            SetButtonVisual(fastDemoButton, missionManager.Phase == MissionPhase.Idle ? ButtonVisual.Primary : fastDemoButton.interactable ? ButtonVisual.Secondary : ButtonVisual.Disabled);
         }
         if (reservationHintText != null)
         {
-            SatelliteData selected = satelliteManager != null ? satelliteManager.SelectedSatellite : null;
-            if (selected == null)
+            reservationHintText.text = "메시지 입력  |  \"" + MessageSampleText(missionTargetName) + "\"";
+        }
+        if (messageInputBox != null)
+        {
+            messageInputBox.color = missionManager.Phase == MissionPhase.Complete
+                ? new Color(0.04f, 0.18f, 0.2f, 0.98f)
+                : new Color(0.08f, 0.11f, 0.16f, 0.98f);
+        }
+        if (transferSummaryBox != null)
+        {
+            transferSummaryBox.gameObject.SetActive(isComplete);
+        }
+        if (transferSummaryText != null)
+        {
+            bool showSummary = isComplete;
+            transferSummaryText.gameObject.SetActive(showSummary);
+            if (showSummary)
             {
-                reservationHintText.text = string.Empty;
-            }
-            else if (selected.ownerType != SatelliteOwnerType.Shared)
-            {
-                reservationHintText.text = "Select active relay to queue.";
-            }
-            else if (selected.availabilityState != SatelliteAvailabilityState.Available && missionManager.Phase == MissionPhase.Idle)
-            {
-                reservationHintText.text = "Active relay unavailable.";
-            }
-            else
-            {
-                reservationHintText.text = "Seoul fixed. Pick destination, then queue.";
+                SatelliteData selected = satelliteManager != null ? satelliteManager.SelectedSatellite : null;
+                string satelliteName = selected != null ? selected.satelliteName : "선택 위성";
+                int latencySeconds = selected != null ? selected.latencySeconds : 0;
+                transferSummaryText.text =
+                    "전송 요약  |  " + satelliteName + "\n" +
+                    missionManager.MessageSizeKb + "KB · " + missionManager.EstimatedPriceCredits + "cr · " + SendTimeLabel() + "\n" +
+                    "지연 " + latencySeconds + "초 · 수신 확인";
             }
         }
     }
@@ -502,7 +672,7 @@ public class UIManager : MonoBehaviour
             case MissionPhase.Transmitting:
                 return 4;
             case MissionPhase.Complete:
-                return 5;
+                return 6;
             default:
                 return -1;
         }
@@ -519,9 +689,26 @@ public class UIManager : MonoBehaviour
         List<string> options = new List<string>();
         foreach (ObservationTarget target in missionManager.Targets)
         {
-            options.Add(target.targetName);
+            options.Add("목적지: " + DestinationLabel(target.targetName));
         }
         targetDropdown.AddOptions(options);
+    }
+
+    private void CreateFilterButton(RectTransform parent, string label, float leftAnchor, UnityAction action)
+    {
+        Button button = CreateButton(
+            parent,
+            label,
+            new Vector2(leftAnchor, 1f),
+            new Vector2(leftAnchor + 0.23f, 1f),
+            new Vector2(14f, -102f),
+            new Vector2(0f, -70f),
+            action);
+        Text text = button.GetComponentInChildren<Text>();
+        if (text != null)
+        {
+            text.fontSize = 13;
+        }
     }
 
     private RectTransform CreatePanel(Transform parent, string objectName, Vector2 anchorMin, Vector2 anchorMax, Color color)
@@ -564,7 +751,9 @@ public class UIManager : MonoBehaviour
 
     private Font CreateUIFont()
     {
-        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        string[] koreanFonts = { "Noto Sans CJK KR", "Noto Sans KR", "NanumGothic", "Arial Unicode MS" };
+        Font koreanFont = Font.CreateDynamicFontFromOSFont(koreanFonts, 16);
+        return koreanFont != null ? koreanFont : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
     private Button CreateListButton(Transform parent, string label, UnityAction action)
@@ -572,17 +761,36 @@ public class UIManager : MonoBehaviour
         GameObject buttonObject = new GameObject("SatelliteButton", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
         buttonObject.transform.SetParent(parent, false);
         LayoutElement layoutElement = buttonObject.GetComponent<LayoutElement>();
-        layoutElement.preferredHeight = 82f;
+        layoutElement.preferredHeight = 58f;
         Button button = buttonObject.GetComponent<Button>();
         button.onClick.AddListener(action);
 
         Image image = buttonObject.GetComponent<Image>();
         image.color = new Color(0.1f, 0.14f, 0.2f, 0.96f);
 
-        Text text = CreateText(buttonObject.transform, label, 17, TextAnchor.MiddleLeft);
+        Text text = CreateText(buttonObject.transform, label, 13, TextAnchor.MiddleLeft);
         text.rectTransform.offsetMin = new Vector2(12f, 6f);
         text.rectTransform.offsetMax = new Vector2(-12f, -6f);
+        GameObject barObject = new GameObject("SelectionBar", typeof(RectTransform), typeof(Image));
+        barObject.transform.SetParent(buttonObject.transform, false);
+        RectTransform barRect = barObject.GetComponent<RectTransform>();
+        barRect.anchorMin = new Vector2(0f, 0f);
+        barRect.anchorMax = new Vector2(0f, 1f);
+        barRect.offsetMin = new Vector2(0f, 0f);
+        barRect.offsetMax = new Vector2(5f, 0f);
+        barObject.GetComponent<Image>().color = new Color(0.24f, 1f, 0.84f, 0.08f);
         return button;
+    }
+
+    private Text CreateProgressLabel(Transform parent, string label, Vector2 offset)
+    {
+        Text text = CreateText(parent, label, 12, TextAnchor.MiddleLeft);
+        text.rectTransform.anchorMin = new Vector2(0f, 0f);
+        text.rectTransform.anchorMax = new Vector2(0f, 0f);
+        text.rectTransform.offsetMin = new Vector2(offset.x, offset.y - 2f);
+        text.rectTransform.offsetMax = new Vector2(offset.x + 46f, offset.y + 14f);
+        text.color = new Color(0.86f, 0.93f, 1f, 0.88f);
+        return text;
     }
 
     private Button CreateButton(Transform parent, string label, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax, UnityAction action)
@@ -749,8 +957,55 @@ public class UIManager : MonoBehaviour
 
     private string FormatSatelliteRow(SatelliteData satellite)
     {
-        return satellite.satelliteName + " | " + satellite.OwnerTypeLabel + "\n" +
-            satellite.StateLabel + " | " + satellite.usageType;
+        string targetName = missionManager != null && missionManager.SelectedTarget != null ? missionManager.SelectedTarget.targetName : "New York";
+        int sendDelay = missionManager != null ? missionManager.RequestedSendDelayMinutes : 0;
+        bool selected = satelliteManager != null && satellite == satelliteManager.SelectedSatellite;
+        bool canServe = satellite.CanServe(targetName, sendDelay);
+        bool recommended = IsRecommendedSatellite(satellite, targetName, sendDelay);
+        string badge = selected ? recommended ? "✓ 선택 · 추천" : "✓ 선택" : recommended ? "★ 추천" : canServe ? "발신 가능" : "대기";
+        string window = satellite.nextWindowMinutes == 0 ? "즉시" : satellite.nextWindowMinutes + "분";
+        return satellite.satelliteName + "   " + badge + "\n" +
+            satellite.orbitSlot + " · " + window + " · " + satellite.feePer32KbCredits + "cr/32KB · 신뢰도 " + satellite.reliabilityPercent + "%";
+    }
+
+    private bool IsRecommendedSatellite(SatelliteData satellite, string targetName, int sendDelay)
+    {
+        if (satelliteManager == null || satellite == null)
+        {
+            return false;
+        }
+
+        SatelliteData best = satelliteManager.FindBestSatellite(targetName, sendDelay);
+        return best == satellite;
+    }
+
+    private string RecommendationReason(SatelliteData satellite, string targetName, int sendDelay)
+    {
+        if (missionManager != null && missionManager.Phase == MissionPhase.Complete && satelliteManager != null && satellite == satelliteManager.SelectedSatellite)
+        {
+            return "이번 발신에 사용된 위성";
+        }
+        if (missionManager != null && missionManager.Phase != MissionPhase.Idle && satelliteManager != null && satellite == satelliteManager.SelectedSatellite)
+        {
+            return "현재 발신 흐름의 선택 위성";
+        }
+        if (!satellite.CanServe(targetName, sendDelay))
+        {
+            return "현재 조건 불일치";
+        }
+        if (IsRecommendedSatellite(satellite, targetName, sendDelay))
+        {
+            return "즉시 가능 · 낮은 요금 우선";
+        }
+        if (satellite.reliabilityPercent >= 94)
+        {
+            return "고신뢰 후보";
+        }
+        if (satellite.feePer32KbCredits <= 3)
+        {
+            return "저가 후보";
+        }
+        return "조건 만족 후보";
     }
 
     private string MissionPhaseLabel(MissionPhase phase)
@@ -758,21 +1013,174 @@ public class UIManager : MonoBehaviour
         switch (phase)
         {
             case MissionPhase.Idle:
-                return "Idle";
+                return "요청 작성";
             case MissionPhase.Reserved:
-                return "Queued";
+                return "위성 확정";
             case MissionPhase.Running:
-                return "Routing";
+                return "경로 탐색";
             case MissionPhase.Observing:
-                return "Uplink";
+                return "중계 잠금";
             case MissionPhase.ObservationComplete:
-                return "Relay Locked";
+                return "메시지 적재";
             case MissionPhase.Transmitting:
-                return "Delivering";
+                return "수신 전송";
             case MissionPhase.Complete:
-                return "Complete";
+                return "수신 완료";
             default:
                 return phase.ToString();
         }
+    }
+
+    private string SendTimeLabel()
+    {
+        if (missionManager == null || missionManager.RequestedSendDelayMinutes == 0)
+        {
+            return "지금 발신";
+        }
+        return missionManager.RequestedSendDelayMinutes + "분 후 발신";
+    }
+
+    private string HeaderStateLabel()
+    {
+        if (missionManager == null)
+        {
+            return "요청 준비";
+        }
+        if (missionManager.Phase == MissionPhase.Complete)
+        {
+            return "수신 완료";
+        }
+        if (missionManager.Phase == MissionPhase.Reserved)
+        {
+            return "위성 확정";
+        }
+        if (missionManager.Phase == MissionPhase.Running || missionManager.Phase == MissionPhase.Observing || missionManager.Phase == MissionPhase.ObservationComplete || missionManager.Phase == MissionPhase.Transmitting)
+        {
+            return "전송 중";
+        }
+        return SendTimeLabel();
+    }
+
+    private string StatusHeadline()
+    {
+        string destination = missionManager != null && missionManager.SelectedTarget != null ? DestinationLabel(missionManager.SelectedTarget.targetName) : "수신 지역";
+        switch (missionManager.Phase)
+        {
+            case MissionPhase.Reserved:
+                return "위성 확정됨 · 메시지 발신 대기";
+            case MissionPhase.Running:
+            case MissionPhase.Observing:
+                return "서울 → 위성 경로 잠금 중";
+            case MissionPhase.ObservationComplete:
+            case MissionPhase.Transmitting:
+                return "서울 → " + destination + " 단문 전송 중";
+            case MissionPhase.Complete:
+                return "전송 완료 · 수신 확인됨";
+            default:
+                return "사용 가능한 위성을 선택하세요";
+        }
+    }
+
+    private string MessageSampleText(string targetName)
+    {
+        if (targetName == "Seoul")
+        {
+            return "서울 내부 테스트 단문";
+        }
+        if (targetName == "New York")
+        {
+            return "뉴욕 수신국 상태 확인 요청";
+        }
+        if (targetName == "London")
+        {
+            return "런던 수신국 경로 확인 요청";
+        }
+        return "수신국 상태 확인 요청";
+    }
+
+    private void SetButtonLabel(Button button, string label)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        Text text = button.GetComponentInChildren<Text>();
+        if (text != null)
+        {
+            text.text = label;
+        }
+    }
+
+    private void SetButtonVisual(Button button, ButtonVisual visual)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        Color normal;
+        Color highlighted;
+        Color disabled;
+        if (visual == ButtonVisual.Primary)
+        {
+            normal = new Color(0.05f, 0.56f, 0.72f, 1f);
+            highlighted = new Color(0.12f, 0.72f, 0.92f, 1f);
+            disabled = new Color(0.08f, 0.12f, 0.16f, 0.55f);
+        }
+        else if (visual == ButtonVisual.Secondary)
+        {
+            normal = new Color(0.1f, 0.28f, 0.48f, 0.96f);
+            highlighted = new Color(0.14f, 0.38f, 0.62f, 1f);
+            disabled = new Color(0.08f, 0.12f, 0.16f, 0.55f);
+        }
+        else
+        {
+            normal = new Color(0.08f, 0.12f, 0.16f, 0.55f);
+            highlighted = normal;
+            disabled = normal;
+        }
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = normal;
+        colors.highlightedColor = highlighted;
+        colors.pressedColor = new Color(0.04f, 0.22f, 0.34f, 1f);
+        colors.disabledColor = disabled;
+        button.colors = colors;
+    }
+
+    private void SetButtonRect(Button button, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = offsetMin;
+        rect.offsetMax = offsetMax;
+    }
+
+    private string DestinationLabel(string targetName)
+    {
+        if (targetName == "Seoul")
+        {
+            return "서울";
+        }
+        if (targetName == "New York")
+        {
+            return "뉴욕";
+        }
+        if (targetName == "London")
+        {
+            return "런던";
+        }
+        if (targetName == "None")
+        {
+            return "없음";
+        }
+        return targetName;
     }
 }

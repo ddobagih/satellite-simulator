@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class OrbitShareBootstrap : MonoBehaviour
@@ -43,7 +44,6 @@ public class OrbitShareBootstrap : MonoBehaviour
         {
             earthMaterial = importedEarthMaterial;
         }
-        Material landMaterial = CreateMaterial("Earth Land", new Color(0.08f, 0.52f, 0.28f));
         Material satelliteMaterial = CreateEmissiveMaterial("Satellite Silver", new Color(0.88f, 0.92f, 0.96f), 0.45f);
         Material panelMaterial = CreateMaterial("Solar Panel", new Color(0.05f, 0.12f, 0.26f));
         Material orbitMaterial = CreateEmissiveMaterial("Orbit Cyan", new Color(0.25f, 0.78f, 1f), 1.2f);
@@ -52,6 +52,8 @@ public class OrbitShareBootstrap : MonoBehaviour
         Material stationMaterial = CreateEmissiveMaterial("Ground Station Green", new Color(0.2f, 1f, 0.55f), 1f);
         Material lineMaterial = CreateEmissiveMaterial("Connection Line", new Color(0.24f, 1f, 0.84f), 1.6f);
         Material atmosphereMaterial = CreateTransparentMaterial("Atmosphere", new Color(0.2f, 0.65f, 1f, 0.16f));
+        Material cloudMaterial = CreateTransparentMaterial("Cloud Layer", new Color(0.9f, 0.96f, 1f, 0.26f));
+        cloudMaterial.mainTexture = CreateCloudTexture();
         Material targetHaloMaterial = CreateTransparentMaterial("Signal Footprint", new Color(1f, 0.62f, 0.08f, 0.18f));
         Material targetActiveHaloMaterial = CreateTransparentMaterial("Active Signal Footprint", new Color(1f, 0.92f, 0.18f, 0.22f));
         Material stationRangeMaterial = CreateTransparentMaterial("Communication Range", new Color(0.2f, 0.95f, 0.72f, 0.08f));
@@ -97,10 +99,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         EarthRotation earthRotation = earth.AddComponent<EarthRotation>();
         earthRotation.simulationManager = simulationManager;
         CreateAtmosphere(earth.transform, atmosphereMaterial);
-        AddLandPatch(earth.transform, landMaterial, 37f, 127f, new Vector3(0.45f, 0.04f, 0.32f));
-        AddLandPatch(earth.transform, landMaterial, 5f, -60f, new Vector3(0.65f, 0.04f, 0.42f));
-        AddLandPatch(earth.transform, landMaterial, -24f, 134f, new Vector3(0.7f, 0.04f, 0.5f));
-        AddLandPatch(earth.transform, landMaterial, 48f, 10f, new Vector3(0.55f, 0.04f, 0.34f));
+        CreateCloudLayer(earth.transform, cloudMaterial);
         AddCityLights(earth.transform, cityLightMaterial);
 
         GameObject satellitesRoot = new GameObject("Satellites");
@@ -113,7 +112,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         GameObject companySatellite = CreateStaticSatellite("SAT-C01", satellitesRoot.transform, satelliteMaterial, panelMaterial, importedSatellitePrefab, new Vector3(4.9f, -1.5f, 4.4f));
         EnterpriseSatelliteAnimator companyAnimator = companySatellite.AddComponent<EnterpriseSatelliteAnimator>();
         companyAnimator.simulationManager = simulationManager;
-        CreateRelayConstellation(satellitesRoot.transform, satelliteMaterial, panelMaterial, importedSatellitePrefab, simulationManager);
+        List<GameObject> relaySatellites = CreateRelayConstellation(satellitesRoot.transform, satelliteMaterial, panelMaterial, importedSatellitePrefab, simulationManager);
         GameObject orbitStation = CreateSpaceStation("OrbitShareStation", satellitesRoot.transform, stationHullMaterial, stationAccentMaterial, importedStationPrefab);
         SpaceStationAnimator stationAnimator = orbitStation.GetComponent<SpaceStationAnimator>();
         if (stationAnimator == null)
@@ -187,6 +186,10 @@ public class OrbitShareBootstrap : MonoBehaviour
         focusController.RegisterSatellite("SAT-P01", personalSatellite.transform);
         focusController.RegisterSatellite("SAT-C01", companySatellite.transform);
         focusController.RegisterSatellite("SAT-S01", sharedSatellite.transform);
+        for (int i = 0; i < relaySatellites.Count; i++)
+        {
+            focusController.RegisterSatellite(relaySatellites[i].name, relaySatellites[i].transform);
+        }
 
         presentationDirector.Attach(missionManager, cameraManager);
         audioFeedbackManager.Attach(missionManager);
@@ -218,11 +221,11 @@ public class OrbitShareBootstrap : MonoBehaviour
 
     private void CreateLight()
     {
-        RenderSettings.ambientLight = new Color(0.09f, 0.11f, 0.16f);
+        RenderSettings.ambientLight = new Color(0.025f, 0.035f, 0.06f);
         GameObject lightObject = new GameObject("Directional Light", typeof(Light));
         Light light = lightObject.GetComponent<Light>();
         light.type = LightType.Directional;
-        light.intensity = 1.15f;
+        light.intensity = 1.35f;
         lightObject.transform.rotation = Quaternion.Euler(45f, -35f, 0f);
     }
 
@@ -289,8 +292,9 @@ public class OrbitShareBootstrap : MonoBehaviour
         return satellite;
     }
 
-    private void CreateRelayConstellation(Transform parent, Material bodyMaterial, Material panelMaterial, GameObject importedPrefab, SimulationManager simulationManager)
+    private List<GameObject> CreateRelayConstellation(Transform parent, Material bodyMaterial, Material panelMaterial, GameObject importedPrefab, SimulationManager simulationManager)
     {
+        List<GameObject> satellites = new List<GameObject>();
         for (int i = 4; i <= 24; i++)
         {
             float radius = i % 3 == 0 ? 6.3f : i % 3 == 1 ? 7.25f : 8.2f;
@@ -307,7 +311,9 @@ public class OrbitShareBootstrap : MonoBehaviour
             animator.inclination = inclination;
             animator.angle = angle;
             animator.speed = 5.6f + (i % 3) * 0.8f;
+            satellites.Add(satellite);
         }
+        return satellites;
     }
 
     private GameObject CreateSpaceStation(string objectName, Transform parent, Material hullMaterial, Material accentMaterial, GameObject importedPrefab)
@@ -391,7 +397,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         {
             labelPosition += Vector3.up * 0.34f;
         }
-        TextMesh label = AddWorldLabel("TO " + displayName, labelPosition, 0.36f);
+        TextMesh label = AddWorldLabel("수신 " + DestinationLabel(displayName), labelPosition, 0.34f);
         observationTarget.SetLabel(label);
         return observationTarget;
     }
@@ -407,7 +413,7 @@ public class OrbitShareBootstrap : MonoBehaviour
         PulseScale pulse = station.AddComponent<PulseScale>();
         pulse.amplitude = 0.08f;
         pulse.speed = 2.2f;
-        AddWorldLabel("FROM Seoul", station.transform.position * 1.13f + Vector3.up * 0.2f, 0.38f);
+        AddWorldLabel("발신 서울", station.transform.position * 1.13f + Vector3.up * 0.2f, 0.36f);
         return station;
     }
 
@@ -420,6 +426,19 @@ public class OrbitShareBootstrap : MonoBehaviour
         atmosphere.transform.localScale = Vector3.one * 1.035f;
         atmosphere.GetComponent<Renderer>().material = atmosphereMaterial;
         Destroy(atmosphere.GetComponent<Collider>());
+    }
+
+    private void CreateCloudLayer(Transform earth, Material cloudMaterial)
+    {
+        GameObject clouds = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        clouds.name = "Cloud Layer";
+        clouds.transform.SetParent(earth, false);
+        clouds.transform.localPosition = Vector3.zero;
+        clouds.transform.localScale = Vector3.one * 1.018f;
+        clouds.GetComponent<Renderer>().material = cloudMaterial;
+        EarthRotation rotation = clouds.AddComponent<EarthRotation>();
+        rotation.simulationManager = earth.GetComponent<EarthRotation>() != null ? earth.GetComponent<EarthRotation>().simulationManager : null;
+        Destroy(clouds.GetComponent<Collider>());
     }
 
     private GameObject CreateSurfaceDisc(string objectName, Vector3 surfacePosition, float diameter, Material material)
@@ -475,7 +494,8 @@ public class OrbitShareBootstrap : MonoBehaviour
         line.material = material;
         line.positionCount = 145;
         line.useWorldSpace = true;
-        line.widthMultiplier = 0.012f;
+        line.widthMultiplier = 0.007f;
+        line.numCapVertices = 4;
 
         Quaternion tilt = Quaternion.Euler(inclination, 0f, 0f);
         for (int i = 0; i < line.positionCount; i++)
@@ -498,10 +518,10 @@ public class OrbitShareBootstrap : MonoBehaviour
         textMesh.text = text;
         textMesh.fontSize = 54;
         textMesh.characterSize = size * 0.115f;
-        textMesh.fontStyle = FontStyle.Bold;
+        textMesh.fontStyle = FontStyle.Normal;
         textMesh.anchor = TextAnchor.MiddleCenter;
         textMesh.alignment = TextAlignment.Center;
-        textMesh.color = new Color(1f, 0.96f, 0.78f, 1f);
+        textMesh.color = new Color(0.88f, 0.96f, 1f, 0.82f);
         labelObject.AddComponent<BillboardLabel>();
         return textMesh;
     }
@@ -572,28 +592,39 @@ public class OrbitShareBootstrap : MonoBehaviour
 
     private Texture2D CreateEarthTexture()
     {
-        Texture2D texture = new Texture2D(256, 128, TextureFormat.RGBA32, false);
-        Color ocean = new Color(0.02f, 0.18f, 0.42f);
-        Color shallow = new Color(0.03f, 0.34f, 0.62f);
-        Color land = new Color(0.06f, 0.38f, 0.2f);
+        Texture2D texture = new Texture2D(1024, 512, TextureFormat.RGBA32, true);
+        texture.filterMode = FilterMode.Trilinear;
+        texture.wrapMode = TextureWrapMode.Repeat;
+        Color deepOcean = new Color(0.015f, 0.105f, 0.28f);
+        Color ocean = new Color(0.025f, 0.22f, 0.48f);
+        Color shallow = new Color(0.04f, 0.38f, 0.58f);
+        Color land = new Color(0.055f, 0.28f, 0.15f);
+        Color highLand = new Color(0.18f, 0.38f, 0.2f);
         Color ice = new Color(0.78f, 0.9f, 0.95f);
 
         for (int y = 0; y < texture.height; y++)
         {
-            float latitude = Mathf.Abs((y / (float)(texture.height - 1)) * 2f - 1f);
+            float v = y / (float)(texture.height - 1);
+            float latitude = Mathf.Abs(v * 2f - 1f);
             for (int x = 0; x < texture.width; x++)
             {
-                float nx = x * 0.045f;
-                float ny = y * 0.075f;
-                float noise = Mathf.PerlinNoise(nx, ny) * 0.65f + Mathf.PerlinNoise(nx * 0.47f + 8f, ny * 0.55f) * 0.35f;
-                Color color = Color.Lerp(ocean, shallow, Mathf.PerlinNoise(nx * 1.8f, ny * 1.8f) * 0.45f);
-                if (noise > 0.56f && latitude < 0.82f)
+                float u = x / (float)(texture.width - 1);
+                float nx = u * 6.2f;
+                float ny = v * 3.1f;
+                float broadLand = Mathf.PerlinNoise(nx * 0.95f + 2.7f, ny * 1.35f);
+                float coastDetail = Mathf.PerlinNoise(nx * 4.8f + 11.2f, ny * 4.2f);
+                float oceanDetail = Mathf.PerlinNoise(nx * 9.5f, ny * 7.5f);
+                float continentMask = broadLand * 0.72f + coastDetail * 0.28f - latitude * 0.18f;
+                Color color = Color.Lerp(deepOcean, ocean, 0.5f + oceanDetail * 0.35f);
+                color = Color.Lerp(color, shallow, Mathf.SmoothStep(0.48f, 0.58f, continentMask) * 0.45f);
+                if (continentMask > 0.58f && latitude < 0.82f)
                 {
-                    color = Color.Lerp(land, new Color(0.16f, 0.48f, 0.22f), noise);
+                    float elevation = Mathf.PerlinNoise(nx * 11.5f + 4f, ny * 9.5f + 8f);
+                    color = Color.Lerp(land, highLand, elevation * 0.7f);
                 }
                 if (latitude > 0.88f)
                 {
-                    color = ice;
+                    color = Color.Lerp(color, ice, Mathf.SmoothStep(0.88f, 0.98f, latitude));
                 }
                 texture.SetPixel(x, y, color);
             }
@@ -601,5 +632,42 @@ public class OrbitShareBootstrap : MonoBehaviour
 
         texture.Apply();
         return texture;
+    }
+
+    private Texture2D CreateCloudTexture()
+    {
+        Texture2D texture = new Texture2D(1024, 512, TextureFormat.RGBA32, true);
+        texture.filterMode = FilterMode.Trilinear;
+        texture.wrapMode = TextureWrapMode.Repeat;
+        for (int y = 0; y < texture.height; y++)
+        {
+            for (int x = 0; x < texture.width; x++)
+            {
+                float nx = x * 0.012f;
+                float ny = y * 0.018f;
+                float cloud = Mathf.PerlinNoise(nx, ny) * 0.65f + Mathf.PerlinNoise(nx * 2.1f + 18f, ny * 1.7f) * 0.35f;
+                float alpha = Mathf.SmoothStep(0.56f, 0.82f, cloud) * 0.42f;
+                texture.SetPixel(x, y, new Color(0.92f, 0.97f, 1f, alpha));
+            }
+        }
+        texture.Apply();
+        return texture;
+    }
+
+    private string DestinationLabel(string targetName)
+    {
+        if (targetName == "Seoul")
+        {
+            return "서울";
+        }
+        if (targetName == "New York")
+        {
+            return "뉴욕";
+        }
+        if (targetName == "London")
+        {
+            return "런던";
+        }
+        return targetName;
     }
 }

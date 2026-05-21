@@ -1,6 +1,6 @@
 # OrbitShare
 
-Unity 3D project for a future one-shot satellite communication relay.
+Unity 3D project for a future one-shot satellite short-message relay.
 
 ## Run
 
@@ -14,39 +14,32 @@ The scene is generated at runtime by `Assets/Scripts/OrbitShareBootstrap.cs`.
 
 1. Sender is fixed at Seoul.
 2. Select one destination city: Seoul, New York, or London.
-3. Click `Queue`.
-4. Click `Relay`.
-5. Use `10x` time scale for a faster demo.
-6. Watch the 24-satellite constellation route a one-shot message and show communication completion.
+3. Choose when to send: now, 5 minutes later, 15 minutes later, or 30 minutes later.
+4. Choose message size: 32 KB, 128 KB, or 512 KB.
+5. Filter/select a candidate satellite by all, available, fastest window, or lowest fee.
+6. Click `위성 확정`, then `메시지 발신`.
+7. Watch the one-shot uplink/relay/downlink flow and confirm the received result.
 
-For a quick run, click `Quick Relay`. It queues and starts the request if needed, aligns the active relay satellite, and assists the delivery phase.
+For a quick run, click `빠른 발신`. It chooses a usable candidate for the selected destination/time, aligns the active relay satellite, and completes the delivery flow.
 
 ## Implemented Features
 
-- 3D Earth with slow rotation
-- Procedural Earth texture and atmosphere shell with an imported space skybox hook
-- 24 visible satellites around the 3D Earth
-- Three controllable relay assets plus 21 background relay nodes
-- Active relay satellite with circular orbit and orbit line
-- Animated relay satellites for a denser communication constellation
-- Selected satellite focus halo and camera follow target switching
-- Satellite list and detail panels
-- Runtime Canvas UI with an optional IMGUI fallback overlay
-- One-shot communication request flow from Seoul
-- Relay request guidance for the Seoul-origin one-shot communication flow
+- Korean Runtime Canvas UI for the main Play Mode flow
+- 3D Earth with slow rotation, improved procedural Earth texture, atmosphere shell, cloud layer, and imported space skybox hook
+- 24 visible/candidate satellites around the 3D Earth
+- Multiple orbit slots and extra orbit-slot rings for a denser relay constellation
+- Scrollable satellite candidate list with filters: all, available, fast window, low fee
+- Satellite detail panel with orbit slot, next window, fee, latency, reliability, battery, and buffer
+- One-shot short-message communication request flow from Seoul
 - Destination city selection and highlighted markers
-- Time controls: Pause, 1x, 5x, 10x
-- Camera modes: Overview, Earth, Satellite, Route
-- Smooth camera transitions
-- Automatic presentation camera cuts during mission phases
-- Distance/angle based relay path lock
-- Destination signal beam, Seoul gateway communication range, and connection line
+- Send-time selection, message-size selection, estimated fee, and success probability display
+- Relay path lock, Seoul gateway communication range, connection line, and destination signal beam
 - Message delivery progress and communication completion status
-- Quick relay button
+- Quick send button
 - Communication timeline UI
-- Relay intelligence panel with route ETA, gateway ETA, payload estimate, route score, and SLA reliability
-- Compact final communication result summary panel
-- Procedural city lights and extra orbit-slot rings for a denser digital-twin scene
+- Compact final received-message result summary panel
+- Selected satellite focus halo and camera follow target switching
+- Runtime Canvas UI with an optional disabled-by-default IMGUI fallback overlay
 - OrbitShare Station object with an Asset Store prefab hook and procedural fallback
 - Procedural UI sound feedback for queueing, relay lock, delivery, and completion
 - Unity internal demo-frame capture utility for visual verification
@@ -81,19 +74,19 @@ The editor automation intentionally exits Play mode after validation, so that be
 
 ### Topic
 
-OrbitShare is a future one-shot satellite communication relay. The local sender is fixed at Seoul, and the user chooses one destination city for a single message delivery.
+OrbitShare is a future one-shot satellite short-message relay. The local sender is fixed at Seoul, and the user chooses one destination city, send time, message size, and a satellite candidate for a single delivery.
 
 ### Practicality
 
-The project visualizes a communication workflow instead of only showing orbital movement: destination selection, request queueing, relay path lock, Seoul gateway sync, and message delivery.
+The project visualizes a communication service workflow instead of only showing orbital movement: destination selection, send-time planning, candidate filtering, fee/success estimate, relay path lock, Seoul gateway sync, and message delivery.
 
 ### Creativity
 
-The key idea is a small-scale alternative to large continuous satellite networks: one Seoul-origin request is routed once through a visible relay constellation.
+The key idea is a small-scale alternative to large continuous satellite networks: one Seoul-origin request finds a suitable satellite window and sends a short message once through a visible relay constellation.
 
 ### Limitations
 
-The orbit is simplified to a circular path for presentation stability. It does not use real orbital mechanics, payment systems, online databases, live satellite data, or map APIs.
+The orbit and availability model are simplified for presentation stability. Fee and success values are simulated estimates, not real billing or live service guarantees. The project does not use real TLE data, payment systems, online databases, live satellite data, or map APIs.
 
 ### Optional Asset Store Upgrade Points
 
