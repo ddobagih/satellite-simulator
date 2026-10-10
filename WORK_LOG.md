@@ -1,28 +1,37 @@
 # OrbitShare Work Log
 
 작성일: 2026-05-15
-최종 점검: 2026-05-18
+최종 점검: 2026-05-25
 
 ## 작업 요약
 
-Unity 2022.3.62f3 기준으로 `OrbitShare` 단발성 위성 단문 발신 프로젝트를 구성했다. 현재 컨셉은 `서울 고정 발신자 + Seoul/New York/London 목적지 선택 + 발신 시각/메시지 용량 선택 + 24개 후보 위성 필터링 + 1회성 통신 릴레이`다. 자동 검증, display smoke, 최신 Play Mode 스크린샷 상태를 함께 확인했다.
+Unity 2022.3.62f3 기준으로 `OrbitShare` 단발성 위성 단문 발신 프로젝트를 구성했다. 현재 컨셉은 `서울 고정 발신자 + 7개 목적지 + 발신 시각/메시지/첨부 선택 + 24개 후보 위성 필터링 + 1회성 통신 릴레이`다.
+
+수동 Unity Editor GUI 리허설은 사용자 지시로 더 이상 별도 리스크나 제출 게이트로 추적하지 않는다. 문서와 검증 상태는 자동 검증, build/display smoke, 캡처, 정적 확인 기준으로만 분리해 기록한다.
 
 ## 구현한 주요 기능
 
 - 런타임 생성형 3D 지구, 대기권, 별 배경, 궤도 링 구성
-- 지구본 절차적 텍스처 고해상도화, 구름 레이어 추가, 돌출 land patch 제거
-- 서울 고정 발신자와 Seoul/New York/London 목적지 선택 UI 구현
-- 24개 릴레이/후보 위성 배치와 스크롤 목록, 전체/가능/빠른창/저가 필터 구현
-- 후보 위성별 궤도 슬롯, 발신 가능 창, 요금, 지연, 신뢰도 표시
+- 외부 지구 텍스처/구름/대기권 shader와 절차적 fallback 구성
+- 서울 고정 발신자와 7개 목적지 선택 UI 구현
+  - Seoul, New York, London, Tokyo, Paris, Sydney, Los Angeles
+- 24개 릴레이/후보 위성 배치와 스크롤 목록, 전체/가능/빠른창/저가/신뢰/혼잡도 필터 구현
+- 후보 위성별 7개 목적지 지원 여부, 현재 위성 위치 기반 가시권, 요금, 지연, 신뢰도, 혼잡도 표시
+- 7개 목적지 이름/라벨은 `OrbitShareDestinations`, 위성 route estimate 계산은 `SatelliteRouteEstimator`로 공통화
 - 발신자-위성-목적지 1회성 통신 릴레이 시나리오 구현
-- 발신 시각, 메시지 용량, 예상 가격, 성공 확률 표시
+- 메시지 UTF-8 용량 계산, 다중 첨부 합산, 512KB payload 제한 구현
+- 진행 중 추가 메시지 작성, 메시지 목록 수정/보류/취소/바로 보내기 흐름 구현
+- 하단 메뉴를 메시지 작성/위성 후보/전송 상태/진행/기록/대기/통계/설정/시연으로 정리하고 메시지 템플릿 탭 제거
+- 하단 메뉴 패널은 같은 버튼을 다시 누르면 닫히도록 통일하고, 메뉴별/작성 단계별 캡처 자동화로 레이아웃을 확인
+- 상단 카메라 프리셋 버튼을 제거하고 목적지/시연 흐름 중심 UI로 단순화
+- 메시지 작성 5단계의 설명글을 숨기고 시간 달력, 메시지/확인 레이아웃, 진행 창 확대, 시연 중지 UX를 정리
+- 전송 기록, 기록 재사용, 경로 재생, 실패 시 재시도 흐름 구현
 - 목적지 마커, relay lock 진행률, delivery 진행률 처리
-- 통신선, 릴레이 경로, 미션 완료 상태 구현
+- 통신선, 릴레이 경로, 전송 패킷, 완료/실패 상태 시각화
 - 발표용 주요 Runtime Canvas UI 한글화
-- 자동 검증용 fast demo와 UI의 `빠른 발신` 흐름 구현
-- 단발성 단문 발신 컨셉 중심의 미션 패널, 요약 패널, UI 문구 개선
+- 자동 검증용 fast demo와 UI의 시연 전송 흐름 구현
 - Unity Editor 메뉴 기반 Linux/Windows 빌드 스크립트 추가
-- Play Mode 자동 검증 스크립트 및 결과 문서 생성
+- Play Mode 자동 검증 스크립트 및 결과 문서 생성 기능 추가
 
 ## 추가한 에셋
 
@@ -39,76 +48,55 @@ Unity Asset Store에서 다운로드한 무료 에셋 중 현재 반영된 항�
 
 - `SatelliteModel`: 전용 위성 모델이 없으면 런타임 생성형/fallback 표현 사용
 - `PremiumEarth`: 선택사항이며 기본 생성형 지구/fallback 유지
-- `SFX`: 선택사항이며 전용 SFX가 없으면 fallback 처리 유지
+- `SFX`: 선택사항이며 전용 SFX가 없으면 generated tone fallback 유지
 
-에셋 원본 `.unitypackage`는 용량이 크기 때문에 `.gitignore`로 제외했다. 실제 프로젝트에는 import된 `Assets` 하위 리소스와 Unity 메타 파일이 포함되어 있다.
+외부 지구 텍스처 출처와 라이선스는 `Assets/Resources/OrbitShare/Earth/ATTRIBUTION.md`에 정리되어 있다.
 
-## 검증 결과
+## 검증/증거 상태
 
-자동 검증 결과는 `orbitshare-validation.md`에 남겼다.
-
-- 결과: PASS
-- Fast Demo 미션 완료: PASS
-- 24개 릴레이 위성 표시: PASS
-- 서울 발신자와 Seoul/New York/London 목적지 구성: PASS
-- Relay lock 진행률 100%: PASS
-- Delivery 진행률 100%: PASS
-- 미션 품질 점수: 71
-- 서비스 신뢰도 점수: 91
-- Runtime Error/Exception 로그: PASS (0)
-- 최신 Play Mode 스크린샷: `orbitshare-playmode.png`
-
-Unity Editor 자동화가 Play Mode에 진입한 뒤 검증 완료 후 종료되는 동작은 의도된 동작이며, 게임 크래시가 아니다.
-
-## 빌드 및 실행 관련 작업
-
-- Unity 프로젝트 설정 파일 구성
-- `Assets/Scenes/MainScene.unity` 생성
-- `Assets/Scripts/OrbitShareBootstrap.cs` 중심의 런타임 scene bootstrap 구조 구성
-- `Assets/Editor/BuildOrbitShare.cs`로 빌드 메뉴 추가
-- Linux 빌드 생성 및 결과 Success 확인
-- 최신 Play Mode 스크린샷 `orbitshare-playmode.png` 확인
-
-## 제출 상태 점검 (2026-05-16)
-
-2026-05-16 catch-up에서 파일 존재 여부와 기존 검증 리포트 기준으로 제출 상태를 다시 점검했다. 이 점검에서는 Unity 자동 검증과 빌드를 새로 실행하지 않았고, 기존 `orbitshare-validation.md`와 `unity-build.log` 결과를 확인 근거로 사용했다.
-
-| 항목 | 상태 | 근거 / 확인 필요 |
+| 항목 | 현재 상태 | 근거 |
 |---|---|---|
-| Unity 프로젝트 | 존재 | `Assets/`, `Packages/`, `ProjectSettings/`, `Assets/Scenes/MainScene.unity` 확인 |
-| README / 작업 로그 | 존재 | `README.md`, `WORK_LOG.md` 확인 |
-| 자동 검증 리포트 | 존재 | `orbitshare-validation.md` 기준 `Result: PASS`, Runtime Error/Exception `PASS (0)` |
-| Linux 실행 빌드 | 존재 | `Builds/Linux/OrbitShare.x86_64` 확인 |
-| Windows 실행 빌드 | 없음 / 확인 필요 | `Builds/Windows/OrbitShare.exe` 미확인. 제출 플랫폼이 Windows 실행 파일을 요구하는지 확인 필요 |
-| Play Mode 스크린샷 | 존재 | `orbitshare-playmode.png` 확인 |
-| 시연 GIF / 프레임 | 존재 | `orbitshare-demo.gif`, `orbitshare-contact-sheet.png`, `DemoFrames/` 확인 |
-| MP4/MOV 시연 영상 | 없음 / 확인 필요 | `.mp4`, `.mov` 파일 미확인. GIF가 시연 영상으로 인정되는지 확인 필요 |
-| 발표 PPT/PDF | 없음 / 확인 필요 | `.ppt`, `.pptx`, `.pdf` 파일 미확인 |
-| 제출 패키지 폴더 | 없음 / 보류 | `Submission/OrbitShare` 미생성. 최종 문서와 제출 형식 확정 후 생성 권장 |
+| 정적 문법/공백 검사 | PASS | `git diff --check` |
+| 실행 스크립트 문법 | PASS | `bash -n run_orbitshare.sh` |
+| 최신 Linux build | PASS | `unity-build-ux-calendar.log`: `Build Finished, Result: Success.` |
+| 최신 Play 캡처 | 존재 | `orbitshare-playmode.png`, 1600x900 |
+| 하단 메뉴/작성 단계 캡처 | PASS | `orbitshare-menu-captures/report.md`: 8개 패널 열기/재클릭 닫기, 작성 5단계, 직접 설정 달력 캡처 PASS |
+| display smoke | PASS 근거 있음 | `build-run-live.log`에서 Display/GfxDevice 생성 및 Error/Exception 매치 없음 |
+| 자동 검증 리포트 파일 | PASS | `orbitshare-validation.md`: `Result: PASS`, 7개 목적지/추천 스냅샷 포함 |
+| 수동 GUI 리허설 | 추적하지 않음 | 2026-05-25 사용자 지시로 별도 리스크/게이트에서 제외 |
 
-## GitHub 업로드
+## 제출 상태
 
-GitHub private 저장소를 생성하고 현재 작업 브랜치를 업로드했다.
+| 항목 | 상태 | 근거 / 처리 |
+|---|---|---|
+| Unity 프로젝트 | 포함 | `Assets/`, `Packages/`, `ProjectSettings/`, `Assets/Scenes/MainScene.unity` |
+| README / 작업 로그 | 포함 | `README.md`, `WORK_LOG.md` |
+| Linux 실행 빌드 | 존재 | `Builds/Linux/`, 최신 Data 파일은 2026-05-25 갱신 |
+| Windows 실행 빌드 | 제외 | Unity 프로젝트 자체 제출 기준 |
+| MP4/MOV 시연 영상 | 제외 | 제출 필수 아님 |
+| 발표 PPT/PDF | 제외 | 제출 필수 아님 |
+| `Submission/OrbitShare` | 제외 | 별도 제출 폴더 불필요 |
+| optional 위성 모델/SFX/LFS | 제외 | fallback 유지 결정 |
+
+## GitHub 업로드 참고
+
+GitHub private 저장소를 생성하고 작업 브랜치를 업로드한 이력이 있다.
 
 - 저장소: `https://github.com/ddobagih/orbitshare-assignment1`
 - 공개 범위: Private
 - 브랜치: `codex/orbitshare-unity-project`
-- 최초 업로드 커밋: `d9c1027`
 
-GitHub 업로드 중 일부 64MB 텍스처 파일에 대해 50MB 권장 크기 초과 경고가 나왔지만, GitHub 하드 제한인 100MB를 넘지 않아 푸시는 성공했다.
+Asset Store 리소스와 대용량 텍스처가 포함될 수 있으므로 저장소는 private 유지가 안전하다.
 
 ## 현재 주의사항
 
-- `Library/`, `Logs/`, `UserSettings/`, `Builds/`, `AssetStorePackages/`는 Git 추적에서 제외했다.
-- 프로젝트에는 큰 텍스처와 모델 파일이 포함되어 있어 clone/push 시간이 길 수 있다.
-- `git-lfs`는 아직 적용하지 않았다.
-- Asset Store 라이선스가 포함된 에셋을 사용하므로 저장소는 private으로 유지하는 것이 안전하다.
-- 최신 Play Mode 스크린샷은 확보했으며, 추가 UI 미세 조정은 제출 직전 화면 확인에서 필요할 때만 진행한다.
+- `Library/`, `Logs/`, `UserSettings/`, `Builds/`, `AssetStorePackages/`는 `.gitignore` 대상이다.
+- 현재 작업트리에는 대량 에셋 삭제, 신규 지구 텍스처/shader/script, 문서/daylog 변경이 함께 남아 있다.
+- `orbitshare-validation.md`는 2026-05-25 재생성했고 최신 자동 검증 결과는 PASS다.
+- 가격/성공률/위성 가용성은 발표용 시뮬레이션 값이며 실제 결제/실제 통신망 데이터가 아니다.
 
-## 남은 개선점
+## 남은 개선 후보
 
-- Git LFS를 도입해 50MB 이상 텍스처와 모델 파일을 별도로 관리
-- 위성 본체 전용 무료/경량 모델 추가 여부 검토
-- UI 전용 SFX 또는 sci-fi HUD 에셋 추가 여부 검토
-- 실제 궤도 역학, TLE 데이터, 지도 API 연동은 추후 확장 기능으로 분리
-- 제출 직전 Play Mode 화면을 다시 확인하고 필요한 경우에만 카메라 구도와 UI 겹침을 미세 조정
+- 24개 후보 위성 동적 추천은 7개 목적지 기준으로 반영됨. 필요 시 지연 시각별 미래 위치 예측을 추가 개선
+- Git 포함/제외 인벤토리 정리
+- 대용량 에셋 정책은 제출 방식이 바뀔 때만 재검토

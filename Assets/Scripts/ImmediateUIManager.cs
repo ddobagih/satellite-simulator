@@ -50,7 +50,7 @@ public class ImmediateUIManager : MonoBehaviour
     {
         GUI.Box(new Rect(0, 0, 1600, 72), GUIContent.none, panelStyle);
         GUI.Label(new Rect(24, 14, 1200, 44), "OrbitShare Relay Twin", titleStyle);
-        GUI.Label(new Rect(1310, 18, 240, 38), "Time " + simulationManager.TimeScale.ToString("0.#") + "x", headingStyle);
+        GUI.Label(new Rect(1310, 18, 240, 38), "Live relay", headingStyle);
     }
 
     private void DrawSatelliteList()
@@ -184,7 +184,7 @@ public class ImmediateUIManager : MonoBehaviour
         ObservationTarget target = missionManager.SelectedTarget;
         string targetText = target != null
             ? "Destination: " + target.targetName + " | " + target.priorityLabel + "\n" +
-              "Payload: " + target.estimatedDataMb.ToString("0") + " MB\n" +
+              "용량: " + FormatMegabytesAsBytes(target.estimatedDataMb) + "\n" +
               "Delay: " + target.resolutionMeters.ToString("0.0") + " s\n" +
               "Relay load: " + target.missionCostCredits + "\n" +
               "Risk: " + target.weatherRiskPercent.ToString("0") + "%"
@@ -214,24 +214,19 @@ public class ImmediateUIManager : MonoBehaviour
         DrawPreview(new Rect(830, 204, 190, 126));
         ObservationTarget target = missionManager.SelectedTarget;
         string dataLabel = target != null
-            ? target.estimatedDataMb.ToString("0") + " MB | " + target.resolutionMeters.ToString("0.0") + " s | Done"
+            ? FormatMegabytesAsBytes(target.estimatedDataMb) + " | " + target.resolutionMeters.ToString("0.0") + " s | Done"
             : "Message delivered";
         GUI.Label(new Rect(830, 334, 210, 24), dataLabel, smallStyle);
     }
 
+    private string FormatMegabytesAsBytes(float megabytes)
+    {
+        long bytes = (long)Mathf.Max(0f, megabytes) * 1024L * 1024L;
+        return bytes.ToString("N0") + " Bytes";
+    }
+
     private void DrawBottomControls()
     {
-        GUI.Box(new Rect(520, 780, 260, 72), GUIContent.none, panelStyle);
-        if (GUI.Button(new Rect(535, 800, 54, 34), "Pause", buttonStyle)) simulationManager.SetTimeScale(0f);
-        if (GUI.Button(new Rect(596, 800, 44, 34), "1x", buttonStyle)) simulationManager.SetTimeScale(1f);
-        if (GUI.Button(new Rect(647, 800, 44, 34), "5x", buttonStyle)) simulationManager.SetTimeScale(5f);
-        if (GUI.Button(new Rect(698, 800, 56, 34), "10x", buttonStyle)) simulationManager.SetTimeScale(10f);
-
-        GUI.Box(new Rect(800, 780, 310, 72), GUIContent.none, panelStyle);
-        if (GUI.Button(new Rect(815, 800, 82, 34), "View", buttonStyle)) cameraManager.SetOverview();
-        if (GUI.Button(new Rect(904, 800, 60, 34), "Earth", buttonStyle)) cameraManager.SetEarth();
-        if (GUI.Button(new Rect(971, 800, 82, 34), "Sat", buttonStyle)) cameraManager.SetSatellite();
-        if (GUI.Button(new Rect(1060, 800, 60, 34), "Route", buttonStyle)) cameraManager.SetMission();
     }
 
     private void DrawBar(Rect rect, float value, Color color)

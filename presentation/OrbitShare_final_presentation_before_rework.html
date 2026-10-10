@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrbitShare 발표</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+    :root {
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --text: #0f1a33;
+      --muted: #4f5c78;
+      --radius: 18px;
+      --gap: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Manrope', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .stage {
+      width: min(1300px, 100%);
+      height: min(780px, 100%);
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(11, 26, 50, 0.10);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(2px);
+      border: 1px solid #e6ebf4;
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    .content-wrap {
+      flex: 1;
+      display: flex;
+      padding: 20px;
+      background: #ffffff;
+      min-height: 0;
+      align-items: stretch;
+      height: 100%;
+    }
+
+    .content-wrap.single-layout {
+      padding: 24px;
+      height: 100%;
+    }
+
+    .slide-panel {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 54%) 1fr;
+      gap: var(--gap);
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid #d8deea;
+      min-width: 0;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px #eef3fb, inset 0 1px 0 #ffffffcc, 0 8px 16px rgba(8, 20, 40, 0.06);
+      padding: 14px;
+    }
+
+    .single-layout .slide-panel {
+      width: 100%;
+      min-height: 100%;
+      height: 100%;
+      display: block;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .intro-layout .slide-panel,
+    .toc-layout .slide-panel,
+    .closing-layout .slide-panel {
+      text-align: center;
+      min-height: 100%;
+      height: 100%;
+    }
+
+    .intro-layout .slide-title {
+      font-size: clamp(46px, 5vw, 62px);
+    }
+
+    .intro-layout .slide-subtitle,
+    .closing-layout .slide-subtitle {
+      font-size: 18px;
+    }
+
+    .media-panel,
+    .text-panel {
+      border-radius: 12px;
+      background: transparent;
+      border: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .media-panel {
+      padding: 0;
+      min-height: 0;
+      min-width: 0;
+      align-items: stretch;
+      justify-content: stretch;
+      background: transparent;
+    }
+
+    .media-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: 10px;
+      background: #fff;
+      min-height: 0;
+      min-width: 0;
+      filter: saturate(1.02);
+      align-self: stretch;
+      flex: 1;
+    }
+
+    .media-panel img[src$=".png"],
+    .media-panel img[src$=".jpg"],
+    .media-panel img[src$=".jpeg"],
+    .media-panel img[src$=".webp"] {
+      height: 100%;
+    }
+
+    .media-panel.media-missing {
+      border-style: none;
+      background: #f8fbff;
+      color: #35507a;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 16px;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .media-placeholder {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      color: #24345a;
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      font-weight: 600;
+      padding: 20px;
+    }
+
+    .media-placeholder em {
+      font-style: normal;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      font-size: 16px;
+      color: #0f2a58;
+    }
+
+    .text-panel {
+      padding: 20px 22px;
+      position: relative;
+      display: grid;
+      align-content: start;
+      justify-items: start;
+      gap: 10px;
+      overflow: auto;
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .intro-layout .slide-panel {
+      grid-template-columns: minmax(0, 43%) 1fr;
+    }
+
+    .intro-layout .media-panel {
+      min-height: 100%;
+      background: transparent;
+      padding: 4px;
+      border-radius: 14px;
+      order: 2;
+    }
+
+    .intro-layout .media-panel img {
+      height: 100%;
+      width: 100%;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .intro-layout .text-panel {
+      order: 1;
+      justify-items: start;
+      align-content: center;
+      gap: 14px;
+      padding-left: 30px;
+      padding-right: 6px;
+    }
+
+    .intro-layout .slide-title {
+      margin-bottom: 4px;
+      font-size: clamp(28px, 3.4vw, 46px);
+      line-height: 1.12;
+      white-space: nowrap;
+    }
+
+    .intro-layout .slide-subtitle {
+      margin: 0;
+      color: #35507a;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .intro-meta {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 9px;
+      font-size: 18px;
+      color: #13284a;
+      font-weight: 700;
+      width: 100%;
+    }
+
+    .intro-meta li {
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    .intro-meta li::before {
+      display: none;
+    }
+
+    .text-block {
+      text-align: left;
+      align-self: start;
+      width: 100%;
+    }
+
+    .slide-subtitle {
+      margin: 0 0 14px;
+      color: #32537f;
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .slide-title {
+      margin: 0 0 14px;
+      font-size: clamp(22px, 2.4vw, 34px);
+      line-height: 1.15;
+      color: #09162f;
+      letter-spacing: -0.025em;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 0;
+      color: #24345a;
+      display: grid;
+      gap: 8px;
+      max-width: 70ch;
+      font-size: 15px;
+      line-height: 1.52;
+    }
+
+    ul ul {
+      margin-top: 6px;
+      padding-left: 0;
+      color: #3a4c74;
+      font-size: 14px;
+      display: grid;
+      gap: 6px;
+      margin-left: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: 0;
+      min-height: 1.4em;
+      align-self: start;
+      list-style: none;
+    }
+
+    li::before {
+      display: none;
+    }
+
+    li ul li::before {
+      width: 5px;
+      background: #7a8db3;
+    }
+
+    .intro-layout .slide-title {
+      font-size: clamp(42px, 5vw, 58px);
+      margin-bottom: 10px;
+    }
+
+    .closing-layout .slide-title {
+      font-size: clamp(38px, 4.8vw, 56px);
+    }
+
+    .closing-layout .slide-subtitle {
+      margin-bottom: 12px;
+      color: #44608d;
+      font-size: 19px;
+    }
+
+    .toc-layout ul {
+      margin-left: 2px;
+      display: grid;
+      gap: 12px;
+      list-style: none;
+    }
+
+    .toc-layout li {
+      list-style: none;
+      padding-left: 12px;
+      background: #f8fbff;
+      border: 1px solid #dfe8f6;
+      border-radius: 12px;
+      padding-top: 9px;
+      padding-bottom: 9px;
+      min-height: 0;
+      line-height: 1.35;
+      font-weight: 500;
+      font-size: 24px;
+    }
+
+    .toc-layout li::before {
+      display: none;
+    }
+
+    .flow-layout .slide-panel {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 12px;
+      padding: 12px;
+      align-items: stretch;
+    }
+
+    .flow-layout .media-panel {
+      grid-row: 2;
+      min-height: 0;
+      max-height: 68vh;
+      padding: 0;
+      border-radius: 12px;
+      order: initial;
+      align-self: center;
+      justify-self: center;
+      width: min(95%, 980px);
+    }
+
+    .flow-layout .media-panel img {
+      height: auto;
+      width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .flow-layout .text-panel {
+      grid-row: 1;
+      order: initial;
+      align-content: start;
+      justify-items: start;
+      padding: 0 6px 0;
+      gap: 12px;
+      height: auto;
+      overflow: visible;
+      max-height: none;
+    }
+
+    .flow-layout .text-panel .slide-title {
+      margin: 0;
+      font-size: clamp(34px, 4.2vw, 48px);
+      line-height: 1.08;
+      margin-bottom: 0;
+    }
+
+    .flow-layout .text-block {
+      width: 100%;
+    }
+
+    .flow-layout .flow-text {
+      grid-row: 4;
+      justify-self: center;
+      align-self: end;
+      margin: 0;
+      margin-bottom: 12px;
+      font-size: clamp(28px, 3.1vw, 44px);
+      line-height: 1.15;
+      color: #0f2a58;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+    }
+
+    .message-layout .slide-panel {
+      align-items: start;
+      grid-template-columns: minmax(0, 45%) 1fr;
+    }
+
+    .content-wrap.message-layout {
+      padding-left: 14px;
+      padding-right: 14px;
+      padding-top: 14px;
+      padding-bottom: 14px;
+      justify-content: start;
+      align-items: start;
+    }
+
+    .message-layout .slide-panel {
+      align-items: stretch;
+      justify-items: stretch;
+      padding: 14px 16px 14px 24px;
+      grid-template-columns: minmax(420px, 55%) 1fr;
+      align-content: start;
+    }
+
+    .message-layout {
+      justify-content: start;
+    }
+
+    .message-layout .media-panel {
+      padding-right: 10px;
+    }
+
+    .message-layout .text-panel {
+      justify-items: start;
+      align-content: start;
+      align-items: start;
+      align-self: start;
+      padding-top: 18px;
+      padding-left: 28px;
+      padding-right: 12px;
+      min-height: 0;
+      grid-column: 2;
+    }
+
+    .message-layout .message-content-panel {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      justify-self: start;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    .message-layout .message-title-panel {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      margin: 0;
+      padding: 20px 22px;
+      display: grid;
+      align-content: start;
+      justify-items: start;
+      gap: 10px;
+    }
+
+    .message-layout .message-title-panel .text-block {
+      margin: 0;
+      padding: 0;
+      min-height: auto;
+      width: 100%;
+    }
+
+    .message-layout .message-title-panel .slide-subtitle {
+      margin: 0 0 14px;
+      color: #32537f;
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .message-layout .message-title-panel .slide-title {
+      margin: 0 0 14px;
+      font-size: clamp(22px, 2.4vw, 34px);
+      line-height: 1.15;
+      color: #09162f;
+      letter-spacing: -0.025em;
+    }
+
+    .message-layout .message-content-panel ul {
+      margin: 0;
+      padding-left: 0;
+      max-width: none;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .message-layout .text-panel .slide-title {
+      margin-top: 0;
+    }
+
+    .message-layout .media-panel,
+    .message-layout .text-panel {
+      align-self: start;
+    }
+
+    .message-layout .media-panel {
+      order: initial;
+      grid-column: 1;
+      grid-row: 2;
+      justify-self: start;
+      padding-top: 0;
+    }
+
+    .message-layout .media-panel img {
+      width: 100%;
+      max-width: none;
+      margin-left: 0;
+      margin-right: 0;
+      align-self: start;
+      display: block;
+      object-position: left center;
+      height: auto;
+      min-height: auto;
+    }
+
+    .message-layout .message-content-panel ul {
+      margin-top: 6px;
+      width: 100%;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding-left: 0;
+      margin-left: 0;
+      gap: 6px;
+    }
+
+    .feature-list li {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .feature-list li::before {
+      display: none;
+    }
+
+    .closing-layout .text-panel {
+      justify-items: center;
+      align-content: center;
+      text-align: center;
+      height: 100%;
+      gap: 0;
+      padding: 0;
+    }
+
+    .closing-layout .slide-title {
+      margin: 0;
+      font-size: clamp(54px, 7vw, 92px);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    li strong {
+      color: #0f2a58;
+      font-weight: 700;
+    }
+
+    .page-counter {
+      position: absolute;
+      right: 24px;
+      bottom: 18px;
+      color: #1a2d58;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      z-index: 4;
+      line-height: 1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 16px 10px;
+      border-radius: 14px;
+      border: 1px solid #d6dfef;
+      background: #ffffff;
+      box-shadow: 0 8px 16px rgba(22, 32, 58, 0.10);
+      isolation: isolate;
+      backdrop-filter: blur(6px);
+    }
+
+    .page-counter .total {
+      font-size: 20px;
+      font-weight: 600;
+      color: #4f5f82;
+    }
+
+    .page-counter .current {
+      font-size: 30px;
+      font-weight: 800;
+      color: #0e3f8f;
+    }
+
+    .page-counter .slash {
+      color: #7d8eb0;
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0 1px 0 1px;
+    }
+
+    @media (max-width: 1024px) {
+      .slide-panel {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .content-wrap.single-layout {
+        padding: 14px;
+      }
+
+      .page-counter {
+        font-size: 26px;
+        right: 14px;
+        bottom: 12px;
+      }
+
+      .page-counter .current {
+        font-size: 26px;
+      }
+
+      .page-counter .total,
+      .page-counter .slash {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 10px;
+      }
+      .stage {
+        height: 100%;
+        border-radius: 12px;
+      }
+      .content-wrap {
+        padding: 12px;
+      }
+      .text-panel,
+      .media-panel {
+        border-radius: 12px;
+      }
+      .text-panel {
+        padding: 14px;
+      }
+      .slide-title {
+        margin-bottom: 8px;
+        font-size: 22px;
+      }
+      .slide-subtitle {
+        margin-bottom: 10px;
+      }
+      ul {
+        font-size: 14px;
+        gap: 6px;
+      }
+
+      .page-counter {
+        font-size: 21px;
+        right: 10px;
+        bottom: 10px;
+        padding: 8px 11px 8px;
+      }
+
+      .page-counter .current {
+        font-size: 22px;
+      }
+
+      .page-counter .total,
+      .page-counter .slash {
+        font-size: 15px;
+      }
+    }
+
+    .text-panel {
+      user-select: text;
+    }
+
+    .media-panel {
+      user-select: none;
+    }
+
+
+  </style>
+</head>
+  <body>
+    <main class="stage" aria-live="polite">
+    <section class="content-wrap" id="slideRoot"></section>
+
+    <div class="page-counter" id="pageCounter" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const slides = [
+      {
+        title: 'OrbitShare 발표',
+        subtitle: '컴퓨터그래픽스 프로젝트',
+        layout: 'intro',
+        image: '../orbitshare-playmode.png',
+        points: [
+          '주제: Unity 기반 위성 통신 시뮬레이터 구현',
+          '이름: 김민호',
+          '학번: 20220196'
+        ]
+      },
+      {
+        title: '목차',
+        subtitle: '',
+        layout: 'toc',
+        image: null,
+        points: [
+          '메시지 전송 파이프라인',
+          '구현 기능',
+          '메시지 작성 - 시간',
+          '메시지 작성 - 메시지',
+          '메시지 작성 - 위치',
+          '메시지 작성 - 위성망',
+          '메시지 작성 - 확인',
+          '실시간 위성 시스템',
+          '애니메이션',
+          '경로 계산',
+          '통신 단계 시각화',
+          '상태',
+          '접근성·설정',
+          '마무리'
+        ]
+      },
+      {
+        title: '메시지 전송 파이프라인',
+        layout: 'flow',
+        subtitle: '핵심 흐름',
+        image: '../orbitshare-playmode.png',
+        points: [
+          '메시지 작성 → 업링크 → ISL → 다운링크 → 수신 완료'
+        ]
+      },
+      {
+        title: '구현 기능',
+        subtitle: '전체 기능 목록',
+        image: null,
+        points: [
+          'OrbitShareBootstrap 실행 시 Earth, 카메라, 라이트, 매니저를 동적으로 초기화',
+          '실행 환경에서 위성 씬, 라벨, 라인 렌더링을 순차 구성',
+          '발신지/목적지 입력과 메시지 본문·첨부 입력을 패널 단위로 관리',
+          '현재 시각/예약 시각 입력 분기 처리 및 입력 유효성 검증',
+          '메시지 바이트 산출 및 용량 제한 조건으로 업로드 정책 적용',
+          '메시지 유효성 검사 통과 후 전송 파라미터를 확정해 큐에 적재',
+          '요청별 상태를 큐/진행/완료 단계로 추적',
+          '실패 항목은 재시도 버튼과 로그 기록으로 재전송 동선을 지원',
+          'CelesTrak 원격 TLE를 수집하고 실패 시 캐시 데이터로 폴백 처리',
+          '위성 후보군을 거리·각도·가시성 조건으로 1차 필터링',
+          '후보 정렬에서 품질 점수와 신뢰도를 반영해 우선순위 계산',
+          'uplink, ISL, relay, downlink 경로를 기반으로 전송 단계 계산',
+          '상태 머신을 통해 실시간/패킷/연결선 애니메이션의 단계별 전이를 제어',
+          '위성 궤도선, 트레일 라인, 라벨 정렬을 통한 시각적 추적성 제공',
+          '큐 패널, 기록 패널, 상태 패널을 분리해 운영 패턴별 보기 모드 지원',
+          '패널 정렬·크기·닫힘 동작을 제스처/클릭/토글로 제어',
+          '고대비 모드와 접근성 설정을 통해 가시성, 폰트, 패널 배치를 강화',
+          '히스토리/상태 로그를 시간순으로 기록해 문제 원인 추적을 지원',
+          '설정 저장을 통해 사용자의 패널 레이아웃/옵션을 세션 간 유지'
+        ]
+      },
+      {
+        title: '메시지 작성 - 시간',
+        subtitle: '패널 오픈과 시간 설정',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/01-compose.png',
+        points: [
+          '발신 시각과 예약 시각을 구분해 입력 값을 처리',
+          '현재 시각 또는 예약 시각 선택',
+          '입력 검증 실패 시 즉시 피드백을 표시'
+        ]
+      },
+      {
+        title: '메시지 작성 - 메시지',
+        subtitle: '텍스트 입력과 첨부 처리',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/flow-02-message.png',
+        points: [
+          '본문 문자열 길이와 바이트로 용량을 산정',
+          '첨부 파일 크기 제한을 적용해 전송 파라미터 고정',
+          '메시지 데이터 변경 시 후보 추천 후보군을 자동 갱신'
+        ]
+      },
+      {
+        title: '메시지 작성 - 위치',
+        subtitle: '목적지 선택과 경로 전제 조건 설정',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/02-satellites.png',
+        points: [
+          '발신지/목적지 노드 목록을 고정 노드셋 기반으로 제공',
+          '위치 변경 시 거리·가시성 계산 조건을 즉시 반영',
+          '노드 메타데이터(좌표·시간)로 후보군을 초기 필터링'
+        ]
+      },
+      {
+        title: '메시지 작성 - 위성망',
+        subtitle: '후보 위성 확인과 선택',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/flow-04-satellite.png',
+        points: [
+          '가시성/품질 점수에 따라 위성 후보를 우선 정렬',
+          '선택된 위성의 점수, 거리, 리턴 시간 정보를 노출',
+          '확정 전 최종 요약값 재검증을 통해 전송 오차 방지'
+        ]
+      },
+      {
+        title: '메시지 작성 - 확인',
+        subtitle: '실행 확정 및 전송 진입',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/flow-05-confirm.png',
+        points: [
+          '메시지 타입/첨부량/도착 조건을 최종 확정',
+          'MissionManager로 상태 머신 진입 후 단계 제어',
+          '실패·재시도·완료 로그가 통합 패널에 기록'
+        ]
+      },
+      {
+        title: '실시간 위성 시스템',
+        subtitle: '실행 파이프라인',
+        layout: 'message',
+        image: '../orbitshare-live-demo-contact.png',
+        points: [
+          'CelesTrak ISS/STATIONS/ACTIVE/STARLINK에서 궤도 정보를 수집',
+          '파싱 실패 시 캐시 데이터로 폴백 렌더링',
+          '실시간 위성 개체 생성, 라벨링, 라인업데이트를 프레임 기준으로 갱신',
+          '현재 시각과 위성 위치 변환을 동기화해 시각 상태를 유지',
+          '그룹/범례 전환과 고대비 모드에서의 표시 안정성을 분리 제어'
+        ]
+      },
+      {
+        title: '애니메이션',
+        subtitle: '프로젝트 내 사용 애니메이션',
+        layout: 'message',
+        image: '../orbitshare-feature-review-contact.png',
+        points: [
+          '위성 궤도 이동 라인 렌더 애니메이션',
+          '위성 하이라이트/선택 강조 라인 펄스',
+          '연결선 생성·삭제 페이드/스케일 인터폴레이션',
+          '패킷/전송 아이콘 순차 이동 애니메이션',
+          '통신 단계 진행률 바 잔차 트랜지션',
+          '큐 상태 전환 시 패널 슬라이드/토글 애니메이션',
+          '실시간 위성 라벨 업데이트 및 색상 전환 전환 효과',
+          '패널 포커스 전환 시 페이드/스케일 블렌딩'
+        ]
+      },
+      {
+        title: '경로 계산',
+        subtitle: '사용 알고리즘 구성',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/02-satellites.png',
+        points: [
+          '발신·목적지·시간 기반의 후보군 1차 필터링',
+          '거리·각도 조건으로 가시성/연결 가능성 제약 적용',
+          '신뢰도와 품질 점수를 정규화해 가중치 산출',
+          '정렬 기준(품질/거리/신뢰도) 기반 추천 순위 계산',
+          '동일 우선순위 처리 시 안정 정렬로 재현성 확보',
+          '결과 누락 방지를 위한 예외 후보 보정 로직'
+        ]
+      },
+      {
+        title: '통신 단계 시각화',
+        subtitle: 'uplink / ISL / relay / downlink',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/04-progress.png',
+        points: [
+          '단계 진행률과 퍼센트 상태 동기화',
+          '패킷 스트림/선 연결을 통한 네트워크 흐름 표시',
+          '완료 단계별 상태 확인 로그 누적',
+          '재실행/리플레이 시퀀스 반복 가능'
+        ]
+      },
+      {
+        title: '상태',
+        subtitle: '큐/기록/재시도',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/05-queue.png',
+        points: [
+          '대기 큐를 통한 연속 요청 처리',
+          '실패 항목 재시도 및 기록 보존',
+          '히스토리 패널에서 성공/실패 항목 조회',
+          '요청 ID 단위 상태 추적'
+        ]
+      },
+      {
+        title: '접근성·설정',
+        subtitle: '운영 제어',
+        layout: 'message',
+        image: '../orbitshare-menu-captures/08-history.png',
+        points: [
+          '고대비 모드 토글로 가시성 강화',
+          '패널 정렬/크기/닫힘 동작 조절',
+          '설정 값 영속 저장',
+          '상태 패널 레이아웃 커스텀'
+        ]
+      },
+      {
+        title: '감사합니다',
+        subtitle: '',
+        layout: 'closing',
+        image: null,
+        points: []
+      }
+    ];
+
+    const root = document.getElementById('slideRoot');
+    const pageCounter = document.getElementById('pageCounter');
+    const query = new URLSearchParams(window.location.search);
+    const singleLayouts = new Set(['toc', 'closing']);
+    const navDeltaByKey = {
+      ArrowRight: 1,
+      ' ': 1,
+      PageDown: 1,
+      ArrowLeft: -1,
+      Backspace: -1,
+      PageUp: -1
+    };
+    const touchThreshold = 40;
+    const layoutClassMap = {
+      message: 'message-layout',
+      toc: 'toc-layout',
+      intro: 'intro-layout',
+      flow: 'flow-layout',
+      closing: 'closing-layout'
+    };
+
+    const initIndex = Number(query.get('slide'));
+    let index = Number.isInteger(initIndex) && initIndex >= 0 && initIndex < slides.length ? initIndex : 0;
+
+    function renderPoint(point) {
+      if (!point) return '';
+      if (typeof point === 'string') {
+        return `<li>${point}</li>`;
+      }
+      if (point.title && Array.isArray(point.items)) {
+        const nested = point.items.map((item) => `<li>${item}</li>`).join('');
+        return `<li><strong>${point.title}</strong><ul>${nested}</ul></li>`;
+      }
+      return `<li>${String(point)}</li>`;
+    }
+
+    function isFeatureListSlide(title) {
+      return title === '구현 기능';
+    }
+
+    function renderTextBlock(slide) {
+      const subtitleBlock = slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : '';
+      return `
+        <div class="text-block">
+          ${subtitleBlock}
+          <h2 class="slide-title">${slide.title}</h2>
+        </div>
+      `;
+    }
+
+    function renderList(points, listClass = '') {
+      if (!Array.isArray(points) || !points.length) return '';
+      const bulletList = points.map(renderPoint).join('');
+      return `<ul class="${listClass}">${bulletList}</ul>`;
+    }
+
+    function mediaPanel(slide, isFirstSlide = false) {
+      if (!slide.image) return '';
+      return `
+        <article class="media-panel">
+          <img src="${slide.image}" alt="${slide.title} 스크린샷" loading="${isFirstSlide ? 'eager' : 'lazy'}" />
+        </article>
+      `;
+    }
+
+    function handleMediaError(event) {
+      const panel = event.currentTarget.parentElement;
+      if (!panel) return;
+      panel.classList.add('media-missing');
+      panel.innerHTML = '<div class="media-placeholder"><em>이미지 로딩 실패</em><br>파일 경로를 확인해주세요</div>';
+    }
+
+    function bindMediaError() {
+      root.querySelectorAll('.media-panel img').forEach((img) => {
+        img.addEventListener('error', handleMediaError, { once: true });
+      });
+    }
+
+    function getRootClass(layout) {
+      const rootClasses = ['content-wrap'];
+      if (singleLayouts.has(layout)) rootClasses.push('single-layout');
+      if (layout) {
+        const layoutClass = layoutClassMap[layout];
+        if (layoutClass) rootClasses.push(layoutClass);
+      }
+      return rootClasses.join(' ');
+    }
+
+    const slideRenderers = {
+      toc: (currentSlide, isFirstSlide, bulletSection) => `
+        <article class="slide-panel">
+          <article class="text-panel">
+            ${renderTextBlock(currentSlide)}
+            ${bulletSection}
+          </article>
+        </article>
+      `,
+      closing: (currentSlide, isFirstSlide, bulletSection) => `
+        <article class="slide-panel">
+          <article class="text-panel">
+            ${renderTextBlock(currentSlide)}
+            ${bulletSection}
+          </article>
+        </article>
+      `,
+      intro: (currentSlide, isFirstSlide) => `
+        <article class="slide-panel">
+          <article class="text-panel">
+            ${renderTextBlock(currentSlide)}
+            ${renderList(currentSlide.points, 'intro-meta')}
+          </article>
+          ${mediaPanel(currentSlide, isFirstSlide)}
+        </article>
+      `,
+      flow: (currentSlide, isFirstSlide) => `
+        <article class="slide-panel">
+          <article class="text-panel">
+            ${renderTextBlock(currentSlide)}
+          </article>
+          ${mediaPanel(currentSlide, isFirstSlide)}
+          <p class="flow-text">${(currentSlide.points || [])[0] || ''}</p>
+        </article>
+      `,
+      message: (currentSlide, isFirstSlide, bulletSection) => `
+        <article class="slide-panel">
+          <article class="message-title-panel">
+            ${renderTextBlock(currentSlide)}
+          </article>
+          ${mediaPanel(currentSlide, isFirstSlide)}
+          ${bulletSection ? `<article class="message-content-panel">${bulletSection}</article>` : ''}
+        </article>
+      `,
+      default: (currentSlide, isFirstSlide, bulletSection) => `
+        <article class="slide-panel">
+          ${mediaPanel(currentSlide, isFirstSlide)}
+          <article class="text-panel">
+            ${renderTextBlock(currentSlide)}
+            ${bulletSection}
+          </article>
+        </article>
+      `
+    };
+
+    function renderSlideTemplate(slide) {
+      const isFeatureList = isFeatureListSlide(slide.title);
+      const featureListClass = isFeatureList ? 'feature-list' : '';
+      const bulletSection = renderList(slide.points, featureListClass);
+      const isFirstSlide = index === 0;
+      const renderSlide = slideRenderers[slide.layout] || slideRenderers.default;
+      return renderSlide(slide, isFirstSlide, bulletSection);
+    }
+
+    function updateRootLayout(layout) {
+      root.className = getRootClass(layout);
+    }
+
+    function render() {
+      const slide = slides[index];
+      const layout = slide.layout || '';
+      updateRootLayout(layout);
+      root.innerHTML = renderSlideTemplate(slide);
+      bindMediaError();
+      updatePageCounter();
+    }
+
+    function updatePageCounter() {
+      pageCounter.innerHTML = `<span class="current">${index + 1}</span><span class="slash">/</span><span class="total">${slides.length}</span>`;
+    }
+
+    function go(delta) {
+      const nextIndex = index + delta;
+      if (nextIndex < 0 || nextIndex >= slides.length) return;
+      index = nextIndex;
+      render();
+    }
+
+    window.addEventListener('keydown', (event) => {
+      const delta = navDeltaByKey[event.key];
+      if (!delta) return;
+      event.preventDefault();
+      go(delta);
+    });
+
+    let startX = 0;
+    let startY = 0;
+
+    document.addEventListener('touchstart', (event) => {
+      if (!event.touches || !event.touches[0]) return;
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (event) => {
+      if (!event.changedTouches || !event.changedTouches[0]) return;
+      const endX = event.changedTouches[0].clientX;
+      const endY = event.changedTouches[0].clientY;
+      const dx = endX - startX;
+      const dy = endY - startY;
+      if (Math.abs(dx) > touchThreshold && Math.abs(dx) > Math.abs(dy)) {
+        go(dx < 0 ? 1 : -1);
+      }
+      startX = 0;
+      startY = 0;
+    }, { passive: true });
+
+    render();
+  </script>
+</body>
+</html>

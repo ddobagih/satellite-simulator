@@ -49,11 +49,11 @@ public class ObservationTarget : MonoBehaviour
             markerRenderer.sharedMaterial = selected ? selectedMaterial : defaultMaterial;
         }
 
-        transform.localScale = selected ? baseScale * 1.45f : baseScale;
+        transform.localScale = selected ? baseScale * 0.92f : baseScale * 0.70f;
         if (labelText != null)
         {
-            labelText.characterSize = selected ? labelBaseSize * 1.18f : labelBaseSize * 0.72f;
-            labelText.color = selected ? new Color(1f, 0.96f, 0.62f, 1f) : new Color(0.86f, 0.92f, 1f, 0.38f);
+            labelText.characterSize = selected ? labelBaseSize * 0.72f : labelBaseSize * 0.42f;
+            labelText.color = selected ? new Color(0.76f, 1f, 1f, 0.68f) : new Color(0.86f, 0.92f, 1f, 0.14f);
         }
     }
 }

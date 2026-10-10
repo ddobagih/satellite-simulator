@@ -2,6 +2,6 @@ using UnityEngine;
 
 public class GroundStation : MonoBehaviour
 {
-    public string stationName = "Seoul Gateway";
+    public string stationName = "Sender Gateway";
     public float communicationAngle = 92f;
 }

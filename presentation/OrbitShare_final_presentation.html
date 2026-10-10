@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrbitShare 발표</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+    :root {
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --text: #0f1a33;
+      --muted: #4f5c78;
+      --radius: 18px;
+      --gap: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Manrope', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .stage {
+      width: min(2925px, 100%);
+      height: min(780px, 100%);
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(11, 26, 50, 0.10);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(2px);
+      border: 1px solid #e6ebf4;
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    .content-wrap {
+      flex: 1;
+      display: flex;
+      padding: 16px 20px;
+      background: #ffffff;
+      min-height: 0;
+      align-items: stretch;
+      height: 100%;
+    }
+
+    .content-wrap.single-layout {
+      padding: 24px;
+      height: 100%;
+    }
+
+    .slide-panel {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 54%) 1fr;
+      gap: var(--gap);
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid #d8deea;
+      min-width: 0;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px #eef3fb, inset 0 1px 0 #ffffffcc, 0 8px 16px rgba(8, 20, 40, 0.06);
+      padding: 14px;
+    }
+
+    .single-layout .slide-panel {
+      width: 100%;
+      min-height: 100%;
+      height: 100%;
+      display: block;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .intro-layout .slide-panel,
+    .toc-layout .slide-panel,
+    .closing-layout .slide-panel {
+      text-align: center;
+      min-height: 100%;
+      height: 100%;
+    }
+
+    .intro-layout .slide-title {
+      font-size: clamp(46px, 5vw, 62px);
+    }
+
+    .intro-layout .slide-subtitle,
+    .closing-layout .slide-subtitle {
+      font-size: 18px;
+    }
+
+    .media-panel,
+    .text-panel {
+      border-radius: 12px;
+      background: transparent;
+      border: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .media-panel {
+      padding: 0;
+      min-height: 0;
+      min-width: 0;
+      align-items: stretch;
+      justify-content: stretch;
+      background: transparent;
+    }
+
+    .media-panel img,
+    .media-panel video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: 10px;
+      background: #fff;
+      min-height: 0;
+      min-width: 0;
+      filter: saturate(1.02);
+      align-self: stretch;
+      flex: 1;
+    }
+
+
+    .media-panel img,
+    .media-panel video {
+      height: 100%;
+    }
+
+    .media-panel.media-missing {
+      border-style: none;
+      background: #f8fbff;
+      color: #35507a;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 16px;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .media-placeholder {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      color: #24345a;
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      font-weight: 600;
+      padding: 20px;
+    }
+
+    .media-content {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 10px;
+      align-self: stretch;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .media-placeholder em {
+      font-style: normal;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      font-size: 16px;
+      color: #0f2a58;
+    }
+
+    .text-panel {
+      padding: 20px 22px;
+      position: relative;
+      display: grid;
+      align-content: start;
+      justify-items: start;
+      gap: 10px;
+      overflow: auto;
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .intro-layout .slide-panel {
+      grid-template-columns: minmax(0, 43%) 1fr;
+      align-items: stretch;
+      align-content: stretch;
+    }
+
+    .intro-layout .media-panel {
+      min-height: 100%;
+      background: transparent;
+      padding: 4px;
+      border-radius: 14px;
+      order: 2;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      align-self: stretch;
+      justify-self: stretch;
+    }
+
+    .intro-layout .media-panel .media-content,
+    .intro-layout .media-panel img {
+      height: 100%;
+      width: 100%;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .intro-layout .text-panel {
+      order: 1;
+      justify-items: start;
+      align-content: center;
+      gap: 14px;
+      padding-left: 30px;
+      padding-right: 6px;
+    }
+
+    .intro-layout .slide-title {
+      margin-bottom: 4px;
+      font-size: clamp(28px, 3.4vw, 46px);
+      line-height: 1.12;
+      white-space: nowrap;
+    }
+
+    .intro-layout .slide-subtitle {
+      margin: 0;
+      color: #35507a;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .intro-meta {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 9px;
+      font-size: 18px;
+      color: #13284a;
+      font-weight: 700;
+      width: 100%;
+    }
+
+    .intro-meta li {
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    .intro-meta li::before {
+      display: none;
+    }
+
+    .text-block {
+      text-align: left;
+      align-self: start;
+      width: 100%;
+    }
+
+    .slide-subtitle {
+      margin: 0 0 14px;
+      color: #32537f;
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .slide-title {
+      margin: 0 0 14px;
+      font-size: clamp(22px, 2.4vw, 34px);
+      line-height: 1.15;
+      color: #09162f;
+      letter-spacing: -0.025em;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 0;
+      color: #24345a;
+      display: grid;
+      gap: 8px;
+      max-width: 70ch;
+      font-size: 15px;
+      line-height: 1.52;
+    }
+
+    ul ul {
+      margin-top: 6px;
+      padding-left: 0;
+      color: #3a4c74;
+      font-size: 14px;
+      display: grid;
+      gap: 6px;
+      margin-left: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: 0;
+      min-height: 1.4em;
+      align-self: start;
+      list-style: none;
+    }
+
+    li::before {
+      display: none;
+    }
+
+    li ul li::before {
+      width: 5px;
+      background: #7a8db3;
+    }
+
+    .intro-layout .slide-title {
+      font-size: clamp(42px, 5vw, 58px);
+      margin-bottom: 10px;
+    }
+
+    .closing-layout .slide-title {
+      font-size: clamp(38px, 4.8vw, 56px);
+    }
+
+    .closing-layout .slide-subtitle {
+      margin-bottom: 12px;
+      color: #44608d;
+      font-size: 19px;
+    }
+
+    .toc-layout ul {
+      margin-left: 2px;
+      margin-top: 20px;
+      padding: 0;
+      list-style: none;
+      display: block;
+    }
+
+    .toc-layout .toc-item {
+      list-style: none;
+      padding-left: 12px;
+      position: relative;
+      background: #f8fbff;
+      border: 1px solid #dfe8f6;
+      border-radius: 12px;
+      padding-top: 9px;
+      padding-bottom: 9px;
+      padding-right: 12px;
+      min-height: 100%;
+      line-height: 1.35;
+      font-weight: 500;
+      font-size: 24px;
+      white-space: nowrap;
+      overflow: visible;
+      padding-right: 30px;
+      word-break: keep-all;
+      text-align: left;
+      display: block;
+    }
+
+    .toc-layout .toc-item::before {
+      display: none;
+    }
+
+    .toc-layout .toc-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 34px;
+      row-gap: 14px;
+      max-width: none;
+      margin-left: 0;
+      margin-top: 10px;
+      padding: 0;
+      width: 100%;
+      align-items: stretch;
+      align-content: start;
+      overflow: visible;
+    }
+
+    .toc-layout .toc-item:not(:nth-child(3n))::after {
+      content: '→';
+      position: absolute;
+      right: -34px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #46699f;
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 700;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .toc-layout .toc-item.no-arrow::after {
+      content: none;
+    }
+
+    .toc-layout .toc-arrow {
+      display: none;
+    }
+
+    .split-layout .slide-panel {
+      display: grid;
+      grid-template-columns: minmax(468px, 60%) 1fr;
+      grid-template-areas:
+        "split-title split-title"
+        "split-media split-content";
+      gap: 16px;
+      align-content: start;
+      padding: 16px;
+      align-items: start;
+      justify-items: stretch;
+    }
+
+    .split-layout .split-title {
+      padding-right: 6px;
+      align-self: start;
+      justify-self: stretch;
+      grid-area: split-title;
+    }
+
+    .split-layout .split-content {
+      padding-left: 6px;
+      align-self: start;
+      justify-self: stretch;
+      margin-top: 0;
+      grid-area: split-content;
+    }
+
+    .split-layout .split-content ul {
+      margin-top: 0;
+      gap: 8px;
+      font-size: 1.2em;
+      line-height: 1.42;
+    }
+
+    .split-layout .split-content li {
+      font-size: 1.2em;
+      line-height: 1.42;
+    }
+
+    .split-layout .text-panel {
+      overflow: hidden;
+    }
+
+    .split-layout .media-panel {
+      grid-area: split-media;
+      align-self: start;
+    }
+
+    .split-layout .media-panel img {
+      width: 100%;
+      height: auto;
+    }
+
+    .split-layout .split-title .slide-title {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .flow3-layout .slide-panel {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      align-items: start;
+      justify-items: center;
+      justify-content: stretch;
+      min-height: 100%;
+      gap: 4px;
+      padding: 18px 26px;
+    }
+
+    .flow3-layout .flow3-title {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 0;
+    }
+
+    .flow3-layout .media-panel.flow3-media {
+      width: min(920px, 100%);
+      grid-row: 2;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      margin-inline: auto;
+      justify-self: stretch;
+      align-self: stretch;
+    }
+
+    .flow3-layout .media-panel.flow3-media img {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: min(460px, calc(100vh - 320px));
+      margin-inline: auto;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 10px;
+    }
+
+    .flow3-layout .flow3-caption {
+      margin: 0;
+      margin-top: 4px;
+      margin-bottom: 0;
+      width: 100%;
+      text-align: center;
+      font-size: clamp(24px, 2.9vw, 36px);
+      line-height: 1.2;
+      color: #0f2a58;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      white-space: normal;
+      max-width: min(1200px, 100%);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding-left: 0;
+      margin-left: 0;
+      gap: 6px;
+    }
+
+    .feature-list li {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .feature-list li::before {
+      display: none;
+    }
+
+    .feature-layout .text-panel {
+      align-items: stretch;
+      padding: 12px 14px 14px;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .feature-layout .slide-panel {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-layout .slide-title {
+      margin-bottom: 6px;
+      font-size: clamp(20px, 2.1vw, 30px);
+      line-height: 1.2;
+    }
+
+    .feature-layout .slide-subtitle {
+      margin-bottom: 4px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .feature-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-auto-rows: minmax(185px, auto);
+      gap: 8px;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .feature-card {
+      border-radius: 12px;
+      border: 1px solid rgba(11, 45, 102, 0.28);
+      background: linear-gradient(180deg, #ffffff, #eff4ff);
+      box-shadow: 0 8px 22px rgba(15, 35, 75, 0.14);
+      padding: 10px;
+      min-height: 185px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .feature-card ul {
+      flex: 1;
+    }
+
+    .feature-card-title {
+      margin: 0 0 6px;
+      font-size: clamp(16px, 1.2vw, 20px);
+      font-weight: 900;
+      color: #112f5f;
+      letter-spacing: -0.01em;
+      background: rgba(17, 47, 95, 0.14);
+      border-radius: 8px;
+      border-left: 4px solid #1e4fa3;
+      padding: 4px 8px;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .feature-card ul {
+      margin: 0;
+      padding-left: 16px;
+      gap: 4px;
+    }
+
+    .feature-card li {
+      margin: 0;
+      color: #0f2746;
+      line-height: 1.28;
+      font-size: 13px;
+      list-style: disc;
+    }
+
+    .closing-layout .text-panel {
+      justify-items: center;
+      align-content: center;
+      text-align: center;
+      height: 100%;
+      gap: 0;
+      padding: 0;
+    }
+
+    .closing-layout .slide-title {
+      margin: 0;
+      font-size: clamp(54px, 7vw, 92px);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    li strong {
+      color: #0f2a58;
+      font-weight: 700;
+    }
+
+    .page-counter {
+      position: absolute;
+      right: 24px;
+      bottom: 18px;
+      color: #1a2d58;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      z-index: 4;
+      line-height: 1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 16px 10px;
+      border-radius: 14px;
+      border: 1px solid #d6dfef;
+      background: #ffffff;
+      box-shadow: 0 8px 16px rgba(22, 32, 58, 0.10);
+      isolation: isolate;
+      backdrop-filter: blur(6px);
+    }
+
+    .page-counter .total {
+      font-size: 20px;
+      font-weight: 600;
+      color: #4f5f82;
+    }
+
+    .page-counter .current {
+      font-size: 30px;
+      font-weight: 800;
+      color: #0e3f8f;
+    }
+
+    .page-counter .slash {
+      color: #7d8eb0;
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0 1px 0 1px;
+    }
+
+    @media (max-width: 1024px) {
+    .slide-panel {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .feature-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .content-wrap.single-layout {
+        padding: 14px;
+      }
+
+      .page-counter {
+        font-size: 26px;
+        right: 14px;
+        bottom: 12px;
+      }
+
+      .page-counter .current {
+        font-size: 26px;
+      }
+
+      .page-counter .total,
+      .page-counter .slash {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 10px;
+      }
+      .stage {
+        height: 100%;
+        border-radius: 12px;
+      }
+      .content-wrap {
+        padding: 12px;
+      }
+      .text-panel,
+      .media-panel {
+        border-radius: 12px;
+      }
+      .text-panel {
+        padding: 14px;
+      }
+      .slide-title {
+        margin-bottom: 8px;
+        font-size: 22px;
+      }
+      .slide-subtitle {
+        margin-bottom: 10px;
+      }
+      ul {
+        font-size: 14px;
+        gap: 6px;
+      }
+
+      .page-counter {
+        font-size: 21px;
+        right: 10px;
+        bottom: 10px;
+        padding: 8px 11px 8px;
+      }
+
+      .page-counter .current {
+        font-size: 22px;
+      }
+
+      .page-counter .total,
+      .page-counter .slash {
+        font-size: 15px;
+      }
+    }
+
+    .text-panel {
+      user-select: text;
+    }
+
+    .media-panel {
+      user-select: none;
+    }
+
+
+  </style>
+</head>
+  <body>
+    <main class="stage" aria-live="polite">
+    <section class="content-wrap" id="slideRoot"></section>
+
+    <div class="page-counter" id="pageCounter" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const SLIDE_LAYOUTS = Object.freeze({
+      intro: 'intro',
+      toc: 'toc',
+      flow3: 'flow3',
+      split: 'split',
+      feature: 'feature',
+      closing: 'closing'
+    });
+    const sharedSlideImage = './media/1.mp4';
+    const withLayout = (layout) => (slide) => ({ ...slide, layout });
+    const singleLayouts = new Set([SLIDE_LAYOUTS.toc, SLIDE_LAYOUTS.closing]);
+    const layoutClassMap = {
+      split: 'split-layout',
+      flow3: 'flow3-layout',
+      feature: 'feature-layout',
+      toc: 'toc-layout',
+      intro: 'intro-layout',
+      closing: 'closing-layout'
+    };
+    const splitPages = [
+      {
+        title: '메시지 작성 - 시간',
+        subtitle: '패널 오픈과 시간 설정',
+        image: './media/2.mp4',
+        points: [
+          '발신 즉시/예약 모드로 동작 분기',
+          '발신 시간 입력을 모드별로 반영',
+          '예약 시각 변경 시 즉시 미리보기 갱신'
+        ]
+      },
+      {
+        title: '메시지 작성 - 메시지',
+        subtitle: '텍스트 입력과 첨부 처리',
+        image: './media/3.mp4',
+        points: [
+          '입력 문자열 크기와 첨부 크기의 합으로 용량 산정',
+          '최대 전송 용량 초과 시 즉시 제한 적용',
+          '메시지 변경 시 위성 추천 후보 자동 갱신'
+        ]
+      },
+      {
+        title: '메시지 작성 - 위치',
+        subtitle: '목적지 선택과 경로 전제 조건 설정',
+        image: './media/4.mp4',
+        points: [
+          '발신지/목적지 후보를 정규화 목록으로 제시',
+          '위치 변경 시 거리 조건 즉시 반영',
+          '좌표·시간 메타데이터로 후보군 사전 필터링'
+        ]
+      },
+      {
+        title: '메시지 작성 - 위성망',
+        subtitle: '후보 위성 확인과 선택',
+        image: './media/5.mp4',
+        points: [
+          '선택 기준(거리·성공률)으로 후보 정렬',
+          '위성 점수·거리·복귀 시간 정보를 한 화면에 정리',
+          '확정 전 후보 조건을 재검증해 일관성 보장'
+        ]
+      },
+      {
+        title: '메시지 작성 - 확인',
+        subtitle: '실행 확정 및 전송 진입',
+        image: './media/6.mp4',
+        points: [
+          '메시지 타입·첨부량·도착 조건 최종 확정',
+          '확인 단계에서 실행 조건 재검증 후 승인'
+        ]
+      },
+      {
+        title: '실시간 위성 시스템',
+        subtitle: '실행 파이프라인',
+        image: './media/1.mp4',
+        points: [
+          'CelesTrak에서 궤도 정보를 수집',
+          '파싱 실패 시 캐시 데이터로 폴백 렌더링',
+          '실시간 위성 개체 생성, 라벨링, 라인업데이트를 프레임 기준으로 갱신',
+          '현재 시각과 위성 위치 변환을 동기화해 시각 상태를 유지',
+        ]
+      },
+      {
+        title: '애니메이션',
+        subtitle: '프로젝트 내 사용 애니메이션',
+        image: './media/6.mp4',
+        points: [
+          '위성 궤도 이동 라인 렌더 애니메이션',
+          '위성 하이라이트/선택 강조 라인 펄스',
+          '연결선 생성·삭제 페이드/스케일 인터폴레이션',
+          '패킷/전송 아이콘 순차 이동 애니메이션',
+          '통신 단계별 진행률 애니메이션',
+          '큐 상태 전환 시 패널 슬라이드/토글 애니메이션',
+          '실시간 위성 라벨 업데이트 및 색상 전환 전환 효과',
+          '패널 포커스 전환 시 페이드/스케일 블렌딩'
+        ]
+      },
+      {
+        title: '경로 계산',
+        subtitle: '사용 알고리즘 구성',
+        image: './media/6.mp4',
+        points: [
+          '발신·목적지·시간 기반의 후보군 1차 필터링',
+          '거리·각도 조건으로 연결 가능성 제약 적용',
+          '신뢰도와 품질 점수를 정규화해 가중치 산출',
+          '정렬 기준(추천 비용/통신 가능시간) 기반 추천 순위 계산',
+          '동일 우선순위 처리 시 안정 정렬로 재현성 확보',
+          '결과 누락 방지를 위한 예외 후보 보정 로직'
+        ]
+      },
+      {
+        title: '통신 단계 시각화',
+        subtitle: 'uplink / ISL / relay / downlink',
+        image: './media/55.png',
+        points: [
+          '단계 진행률과 퍼센트 상태 동기화',
+          '패킷 스트림/선 연결을 통한 네트워크 흐름 표시',
+          '완료 단계별 상태 확인 로그 누적'
+        ]
+      },
+      {
+        title: '전송 상태',
+        subtitle: '큐/기록/재시도',
+        image: './media/33.png',
+        points: [
+          '대기 큐를 통한 연속 요청 처리',
+          '실패 항목 재시도 및 기록 보존',
+          '히스토리 패널에서 성공/실패 항목 조회',
+          '요청 ID 단위 상태 추적'
+        ]
+      },
+      {
+        title: '설정',
+        subtitle: '운영 제어',
+        image: './media/44.png',
+        points: [
+          '고대비 모드와 글자 크기 토글로 표시 가독성 조정',
+          '패널 정렬/크기/닫힘 상태를 세션 간 유지',
+          'UI 크기 조절',
+          '빠른 카메라 시점 이동으로 주요 장면으로 즉시 이동'
+        ]
+      }
+    ];
+
+    const slides = [
+      {
+        title: 'OrbitShare 발표',
+        subtitle: '컴퓨터그래픽스 프로젝트',
+        layout: SLIDE_LAYOUTS.intro,
+        image: sharedSlideImage,
+        points: [
+          '주제: Unity 기반 위성 통신 시뮬레이터 구현',
+          '이름: 김민호',
+          '학번: 20220196'
+        ]
+      },
+      {
+        title: '목차',
+        subtitle: '',
+        layout: SLIDE_LAYOUTS.toc,
+        points: [
+          '메시지 전송 파이프라인',
+          '구현 기능',
+          '메시지 작성 - 시간',
+          '메시지 작성 - 메시지',
+          '메시지 작성 - 위치',
+          '메시지 작성 - 위성망',
+          '메시지 작성 - 확인',
+          '실시간 위성 시스템',
+          '애니메이션',
+          '경로 계산',
+          '통신 단계 시각화',
+          '전송 상태',
+          '설정',
+        ]
+      },
+    {
+        title: '메시지 전송 파이프라인',
+        subtitle: '핵심 흐름',
+        layout: SLIDE_LAYOUTS.flow3,
+        image: './media/55.png',
+        points: [
+          '메시지 작성 → 업링크 → ISL → 다운링크 → 수신 완료'
+        ]
+      },
+      {
+        title: '구현 기능',
+        subtitle: '전체 기능 목록',
+        layout: SLIDE_LAYOUTS.feature,
+        image: null,
+        points: [
+          {
+            title: '실행/렌더 인프라',
+            items: [
+              'Mission 시작 시 Earth, 카메라, 매니저, 위성 씬 동적 초기화',
+              '상태 전이 연동으로 3D 표현(패킷/연결선) 단계 제어'
+            ]
+          },
+          {
+            title: '실시간 위성 데이터 파이프라인',
+            items: [
+              'CelesTrak(TLE/OMM) 원격 수집 및 캐시 갱신',
+              '파싱 실패 시 폴백 데이터 적용, 위성명·위치·속도 상태 동기화'
+            ]
+          },
+          {
+            title: '입력·예약·작성 플로우',
+            items: [
+              '발신·목적지·메시지·첨부(다중) 입력 처리, 달력 기반 예약 시각 선택',
+              '메시지 바이트 기반 크기 제한으로 전송/예약 파라미터 실시간 확정'
+            ]
+          },
+          {
+            title: '큐와 예약 운영',
+            items: [
+              '대기 큐 추가·수정·삭제·보류·재정렬, 즉시 시작/자동 시작 지원',
+              '초안 저장 복원, 큐 상태 유지, 연속 전송 시작 가능성 판별'
+            ]
+          },
+          {
+            title: '위성 추천·필터링',
+            items: [
+              '거리·가시성·성공 가용 조건 기반 후보 필터링 후 정렬',
+              '가격, 예상 성공률, 가용창, 예상 전송시간을 함께 노출'
+            ]
+          },
+          {
+            title: '경로 계산·중계 제어',
+            items: [
+              'uplink/ISL/relay/downlink 단계 기반 전송 계획 산출',
+              '다중 위성 릴레이 경로 후보 탐색 및 실시간 경로 선택'
+            ]
+          },
+          {
+            title: '전송·상태·로그',
+            items: [
+              '상태 머신 기반 구간별 진행률·로그 추적, 성공·실패 관리',
+              '실패 항목 재시도, 경로 재생(일시정지/재개/속도 제어) 지원'
+            ]
+          },
+          {
+            title: '기록·통계·재사용',
+            items: [
+              '성공/실패 히스토리 저장·조회, 검색, 재사용/재송신'
+            ]
+          },
+          {
+            title: '운영 설정·접근성',
+            items: [
+              '고대비·글자 크기·패널 정렬/크기/닫힘 상태 저장·복원',
+              '카메라 모드 제어(회전/줌/초기화), 오디오 피드백 제공'
+            ]
+          }
+        ]
+      },
+      ...splitPages.map((slide, index) => ({
+        ...withLayout('split')(slide),
+        image: slide.image
+      })),
+      {
+        title: '감사합니다',
+        subtitle: '',
+        layout: SLIDE_LAYOUTS.closing,
+        image: null,
+        points: []
+      }
+    ];
+
+    const root = document.getElementById('slideRoot');
+    const pageCounter = document.getElementById('pageCounter');
+    const query = new URLSearchParams(window.location.search);
+    const navDeltaByKey = {
+      ArrowRight: 1,
+      ' ': 1,
+      PageDown: 1,
+      ArrowLeft: -1,
+      Backspace: -1,
+      PageUp: -1
+    };
+    const touchThreshold = 40;
+
+    const initSlideNo = Number(query.get('slide'));
+    const initIndexFrom1Based = Number.isInteger(initSlideNo) && initSlideNo >= 1 && initSlideNo <= slides.length ? initSlideNo - 1 : -1;
+    const initIndexFrom0Based = Number.isInteger(initSlideNo) && initSlideNo >= 0 && initSlideNo < slides.length ? initSlideNo : -1;
+    let index = initIndexFrom1Based >= 0 ? initIndexFrom1Based : initIndexFrom0Based >= 0 ? initIndexFrom0Based : 0;
+
+    function renderPoint(point) {
+      if (!point) return '';
+      if (typeof point === 'string') {
+        return `<li>${point}</li>`;
+      }
+      if (point.title && Array.isArray(point.items)) {
+        const nested = point.items.map((item) => `<li>${item}</li>`).join('');
+        return `<li><strong>${point.title}</strong><ul>${nested}</ul></li>`;
+      }
+      return `<li>${String(point)}</li>`;
+    }
+
+    function renderFeatureCards(points) {
+      if (!Array.isArray(points) || !points.length) return '';
+      const cards = points
+        .filter((point) => point && !Array.isArray(point) && typeof point === 'object' && point.title)
+        .map((point) => {
+          const items = Array.isArray(point.items) ? point.items : [];
+          const nested = items.map((item) => `<li>${item}</li>`).join('');
+          return `
+            <article class="feature-card">
+              <h3 class="feature-card-title">${point.title}</h3>
+              <ul>${nested}</ul>
+            </article>
+          `;
+        }).join('');
+
+      if (!cards) {
+        return renderList(points, 'feature-list');
+      }
+
+      return `<div class="feature-cards">${cards}</div>`;
+    }
+
+    function isFeatureListSlide(slide) {
+      return slide.layout === SLIDE_LAYOUTS.feature;
+    }
+
+    function renderTextBlock(slide) {
+      const subtitleBlock = slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : '';
+      return `
+        <div class="text-block">
+          ${subtitleBlock}
+          <h2 class="slide-title">${slide.title}</h2>
+        </div>
+      `;
+    }
+
+    function renderTextPanel(content, panelClass = '') {
+      const className = panelClass ? ` class="${panelClass}"` : '';
+      return `<article${className}>${content}</article>`;
+    }
+
+    function mediaPanel(slide, isFirstSlide = false, panelClass = 'media-panel') {
+      if (!slide.image) return '';
+      const className = panelClass ? panelClass : 'media-panel';
+      const src = slide.image;
+      const isVideo = typeof src === 'string' && src.toLowerCase().endsWith('.mp4');
+      const media = isVideo
+        ? `<video src="${src}" class="media-content" autoplay muted loop playsinline controls preload="metadata"></video>`
+        : `<img src="${src}" alt="${slide.title} 스크린샷" loading="${isFirstSlide ? 'eager' : 'lazy'}" />`;
+      return `
+        <article class="${className}">
+          ${media}
+        </article>
+      `;
+    }
+
+    function renderSplitPanel(slide, bulletSection, isFirstSlide = false) {
+      return `
+        <article class="slide-panel">
+          ${renderTextPanel(`
+            ${slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : ''}
+            <h2 class="slide-title">${slide.title}</h2>
+          `, 'text-panel split-title')}
+          ${renderTextPanel(bulletSection, 'text-panel split-content')}
+          ${mediaPanel(slide, isFirstSlide, 'media-panel')}
+        </article>
+      `;
+    }
+
+    function renderTocItems(points) {
+      if (!Array.isArray(points) || !points.length) return '';
+      const settingIndex = points.findIndex((point) => {
+        const text = String(point ?? '').trim();
+        return text === '설정' || text === '접근성 설정';
+      });
+      const nodes = points.map((point, index) => {
+        const isAfterSetting = settingIndex >= 0 && index >= settingIndex;
+        return `<li class="toc-item${isAfterSetting ? ' no-arrow' : ''}">${point}</li>`;
+      }).join('');
+      return `<ul class="toc-list">${nodes}</ul>`;
+    }
+
+    function renderList(points, listClass = '') {
+      if (!Array.isArray(points) || !points.length) return '';
+      const bulletList = points.map(renderPoint).join('');
+      return `<ul class="${listClass}">${bulletList}</ul>`;
+    }
+
+    function handleMediaError(event) {
+      const panel = event.currentTarget.parentElement;
+      if (!panel) return;
+      panel.classList.add('media-missing');
+      panel.innerHTML = '<div class="media-placeholder"><em>미디어 로딩 실패</em><br>파일 경로를 확인해주세요</div>';
+    }
+
+    function bindMediaError() {
+      root.querySelectorAll('.media-panel img, .media-panel video').forEach((mediaElement) => {
+        mediaElement.addEventListener('error', handleMediaError, { once: true });
+      });
+    }
+
+    function getRootClass(layout) {
+      const rootClasses = ['content-wrap'];
+      if (singleLayouts.has(layout)) rootClasses.push('single-layout');
+      if (layout) {
+        const layoutClass = layoutClassMap[layout];
+        if (layoutClass) rootClasses.push(layoutClass);
+      }
+      return rootClasses.join(' ');
+    }
+
+    const slideRenderers = {
+      feature: (currentSlide, _, bulletSection) => `
+        <article class="slide-panel">
+          ${renderTextPanel(`
+            ${renderTextBlock(currentSlide)}
+            ${bulletSection}
+          `, 'text-panel')}
+        </article>
+      `,
+      toc: (currentSlide, _, bulletSection) => `
+        <article class="slide-panel">
+          ${renderTextPanel(`
+            ${renderTextBlock(currentSlide)}
+            ${renderTocItems(currentSlide.points)}
+          `, 'text-panel')}
+        </article>
+      `,
+      closing: (currentSlide, _, bulletSection) => `
+        <article class="slide-panel">
+          ${renderTextPanel(`
+            ${renderTextBlock(currentSlide)}
+            ${bulletSection}
+          `, 'text-panel')}
+        </article>
+      `,
+      intro: (currentSlide, isFirstSlide) => `
+        <article class="slide-panel">
+          ${renderTextPanel(`
+            ${renderTextBlock(currentSlide)}
+            ${renderList(currentSlide.points, 'intro-meta')}
+          `, 'text-panel')}
+          ${mediaPanel(currentSlide, isFirstSlide)}
+        </article>
+      `,
+      split: (currentSlide, _, bulletSection) => renderSplitPanel(currentSlide, bulletSection),
+      flow3: (currentSlide, isFirstSlide) => `
+        <article class="slide-panel">
+          ${renderTextPanel(renderTextBlock(currentSlide), 'text-panel flow3-title')}
+          ${mediaPanel(currentSlide, isFirstSlide, 'media-panel flow3-media')}
+          <p class="flow3-caption">${(currentSlide.points || [])[0] || ''}</p>
+        </article>
+      `,
+      default: (currentSlide, isFirstSlide, bulletSection) => `
+        <article class="slide-panel">
+          ${mediaPanel(currentSlide, isFirstSlide)}
+          ${renderTextPanel(`
+            ${renderTextBlock(currentSlide)}
+            ${bulletSection}
+          `, 'text-panel')}
+        </article>
+      `
+    };
+
+    function renderSlideTemplate(slide) {
+      const isFeatureList = isFeatureListSlide(slide);
+      const featureListClass = isFeatureList ? 'feature-list' : '';
+      const bulletSection = isFeatureList
+        ? renderFeatureCards(slide.points)
+        : renderList(slide.points, featureListClass);
+      const isFirstSlide = index === 0;
+      const renderSlide = slideRenderers[slide.layout] || slideRenderers.default;
+      return renderSlide(slide, isFirstSlide, bulletSection);
+    }
+
+    function updateRootLayout(layout) {
+      root.className = getRootClass(layout);
+    }
+
+    function render() {
+      const slide = slides[index];
+      const layout = slide.layout || '';
+      updateRootLayout(layout);
+      root.innerHTML = renderSlideTemplate(slide);
+      bindMediaError();
+      updatePageCounter();
+    }
+
+    function updatePageCounter() {
+      pageCounter.innerHTML = `<span class="current">${index + 1}</span><span class="slash">/</span><span class="total">${slides.length}</span>`;
+    }
+
+    function go(delta) {
+      const nextIndex = index + delta;
+      if (nextIndex < 0 || nextIndex >= slides.length) return;
+      index = nextIndex;
+      render();
+    }
+
+    window.addEventListener('keydown', (event) => {
+      const delta = navDeltaByKey[event.key];
+      if (!delta) return;
+      event.preventDefault();
+      go(delta);
+    });
+
+    let startX = 0;
+    let startY = 0;
+
+    document.addEventListener('touchstart', (event) => {
+      if (!event.touches || !event.touches[0]) return;
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (event) => {
+      if (!event.changedTouches || !event.changedTouches[0]) return;
+      const endX = event.changedTouches[0].clientX;
+      const endY = event.changedTouches[0].clientY;
+      const dx = endX - startX;
+      const dy = endY - startY;
+      if (Math.abs(dx) > touchThreshold && Math.abs(dx) > Math.abs(dy)) {
+        go(dx < 0 ? 1 : -1);
+      }
+      startX = 0;
+      startY = 0;
+    }, { passive: true });
+
+    render();
+  </script>
+</body>
+</html>

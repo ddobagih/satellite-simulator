@@ -62,4 +62,5 @@ DISPLAY="$DISPLAY_TO_USE" "$EXECUTABLE" \
   -screen-fullscreen 0 \
   -screen-width "$SCREEN_WIDTH" \
   -screen-height "$SCREEN_HEIGHT" \
+  -force-run-in-background \
   -logFile "$LOG_FILE"

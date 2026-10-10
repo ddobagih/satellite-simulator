@@ -26,3 +26,7 @@ Assets/**/*.unitypackage
 *.mdb
 *.opendb
 *.VC.db
+
+# Local player state and corrupted presentation backups.
+.orbitshare-player.pid
+presentation/*.corrupted_*

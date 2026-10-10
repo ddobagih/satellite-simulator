@@ -70,7 +70,7 @@ public class PresentationDirector : MonoBehaviour
                 cameraManager.SetMission();
                 break;
             case MissionPhase.Transmitting:
-                cameraManager.SetSatellite();
+                cameraManager.SetOverview();
                 break;
             case MissionPhase.Complete:
                 cameraManager.SetOverview();

@@ -1,11 +1,16 @@
 # Asset Store Upgrade Guide
 
-This project currently runs with two imported runtime resources and procedural fallbacks for everything else. Unity Asset Store downloads require the user's Unity account and license entitlement, so any additional packages must be downloaded through Unity Editor/Package Manager first.
+This project currently runs with imported skybox/station resources, external Earth textures/shaders, and procedural fallbacks for everything else. Unity Asset Store downloads require the user's Unity account and license entitlement, so any additional packages must be downloaded through Unity Editor/Package Manager first.
 
 Once `.unitypackage` files are available, OrbitShare can import and validate them automatically.
 
 ## Currently Included Runtime Assets
 
+- `Assets/Resources/OrbitShare/Earth/`
+  - Solar System Scope Earth day/night/cloud/normal/specular textures used by the runtime Earth material.
+  - Attribution is stored in `Assets/Resources/OrbitShare/Earth/ATTRIBUTION.md`.
+- `Assets/Resources/OrbitShare/AtmosphereRim.shader`, `EarthDayNight.shader`, `EarthClouds.shader`
+  - Runtime Earth atmosphere/day-night/cloud rendering shaders.
 - `Assets/Resources/OrbitShare/SpaceSkybox.mat`
   - Used as the runtime space skybox when present.
   - If missing, OrbitShare falls back to a procedural starfield.
@@ -72,6 +77,8 @@ Automatic resource names:
 - Observation sound: `Assets/Resources/OrbitShare/SFX_Observe.wav`
 - Transmission sound: `Assets/Resources/OrbitShare/SFX_Transmit.wav`
 - Completion sound: `Assets/Resources/OrbitShare/SFX_Complete.wav`
+- Click sound: `Assets/Resources/OrbitShare/SFX_Click.wav`
+- Failure sound: `Assets/Resources/OrbitShare/SFX_Failure.wav`
 
 If these files exist, OrbitShare loads them automatically at runtime. If they are missing, it falls back to procedural visuals and generated tones.
 
@@ -81,6 +88,6 @@ Current hook behavior:
 - `SpaceStation.prefab`: replaces the procedural OrbitShare Station when present.
 - `PremiumEarthMaterial.mat`: replaces the procedural Earth material when present.
 - `SpaceSkybox.mat`: replaces the procedural starfield when present.
-- `SFX_*.wav`: replaces generated UI tones when present.
+- `SFX_*.wav`: replaces generated UI tones when present. Currently `SFX_Click.wav` and `SFX_Failure.wav` are also optional hooks.
 
 No code change is required if the assets are placed with the names above. The implementation keeps procedural fallbacks so the project remains portable and does not break when optional Asset Store packages are missing.

@@ -3,7 +3,7 @@ using UnityEngine;
 public class PulseScale : MonoBehaviour
 {
     public SimulationManager simulationManager;
-    public float amplitude = 0.14f;
+    public float amplitude = 0.06f;
     public float speed = 3f;
 
     private Vector3 baseScale;
@@ -19,6 +19,7 @@ public class PulseScale : MonoBehaviour
     {
         float delta = simulationManager != null ? simulationManager.ScaledDeltaTime : Time.deltaTime;
         phase += delta * speed;
-        transform.localScale = baseScale * (1f + Mathf.Sin(phase) * amplitude);
+        float safeAmplitude = Mathf.Clamp(amplitude, 0f, 0.08f);
+        transform.localScale = baseScale * (1f + Mathf.Sin(phase) * safeAmplitude);
     }
 }
